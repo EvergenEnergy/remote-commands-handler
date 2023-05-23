@@ -1,7 +1,6 @@
 from pymodbus.client import ModbusTcpClient
 from app.configuration import Configuration
 
-
 class ModbusClient:
     def __init__(self, configuration: Configuration, port: int, host: str) -> None:
         self.configuration = configuration 
