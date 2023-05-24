@@ -3,14 +3,14 @@ import threading
 from multiprocessing import Pipe
 
 from app.modbus_client import ModbusClient
-from app.configuration import Coil, Configuration, HoldingRegister
+from app.configuration import Coil, Configuration, HoldingRegister, ModbusSettings, MqttSettings
 
 def test_write_coil():
     coils = [
         Coil("test_coil", 1)
     ]
     holding_registers = []
-    configuration = Configuration(coils, holding_registers)
+    mqtt_settings = MqttSettings("test", 100, "test")
 
     read, write = Pipe(duplex=False)
 
@@ -18,6 +18,8 @@ def test_write_coil():
         write.send(True)
     thread, port = start_local_tcp_client(test)
 
+    modbus_settings = ModbusSettings("localhost", port)
+    configuration = Configuration(coils, holding_registers, mqtt_settings, modbus_settings)
     client = ModbusClient(configuration, port, "localhost")
     client.write_coil("test_coil", True)
 
@@ -30,7 +32,7 @@ def test_write_coils():
         Coil("test_coil", 1)
     ]
     holding_registers = []
-    configuration = Configuration(coils, holding_registers)
+    mqtt_settings = MqttSettings("test", 100, "test")
 
     read, write = Pipe(duplex=False)
 
@@ -38,6 +40,8 @@ def test_write_coils():
         write.send(True)
     thread, port = start_local_tcp_client(test)
 
+    modbus_settings = ModbusSettings("localhost", port)
+    configuration = Configuration(coils, holding_registers, mqtt_settings, modbus_settings)
     client = ModbusClient(configuration, port, "localhost")
     client.write_coils("test_coil", [True, True])
 
@@ -56,15 +60,18 @@ def test_write_holding_registers():
             1
         )
     ]
-    configuration = Configuration(coils, holding_registers)
+    mqtt_settings = MqttSettings("test", 100, "test")
 
     read, write = Pipe(duplex=False)
 
     def test(_message):
         print(_message)
         write.send(True)
+
     thread, port = start_local_tcp_client(test)
 
+    modbus_settings = ModbusSettings("localhost", port)
+    configuration = Configuration(coils, holding_registers, mqtt_settings, modbus_settings)
     client = ModbusClient(configuration, port, "localhost")
     client.write_register("test_register", 10)
 
