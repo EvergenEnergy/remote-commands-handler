@@ -22,20 +22,26 @@ def handle_args():
 
     return parser.parse_args()
 
+def setup_modbus_client(configuration: Configuration, args) -> ModbusClient:
+    modbus_settings = configuration.modbus_settings
+    modbus_host = args.modbus_host if args.modbus_host else modbus_settings.host 
+    modbus_port = args.modbus_port if args.modbus_port else modbus_settings.port 
+    return ModbusClient(configuration, modbus_host, modbus_port)
+
+def setup_mqtt_client(mqtt_settings, args) -> MqttClient:
+    mqtt_host = args.mqtt_host if args.mqtt_host else mqtt_settings.host 
+    mqtt_port = args.mqtt_port if args.mqtt_port else mqtt_settings.port 
+    return MqttClient(mqtt_host, mqtt_port)
+
+
 def main():
     args = handle_args()
 
     configuration = Configuration.from_file(args.configuration_path)
-
-    modbus_settings = configuration.modbus_settings
-    modbus_host = args.modbus_host if args.modbus_host else modbus_settings.host 
-    modbus_port = args.modbus_port if args.modbus_port else modbus_settings.port 
-    modbus_client = ModbusClient(configuration, modbus_host, modbus_port)
+    modbus_client = setup_modbus_client(configuration, args)
 
     mqtt_settings = configuration.mqtt_settings
-    mqtt_host = args.mqtt_host if args.mqtt_host else mqtt_settings.host 
-    mqtt_port = args.mqtt_port if args.mqtt_port else mqtt_settings.port 
-    mqtt_client = MqttClient(mqtt_host, mqtt_port)
+    mqtt_client = setup_mqtt_client(mqtt_settings, args)
 
     mqtt_client.subscribe_topics([mqtt_settings.command_topic])
 
