@@ -39,3 +39,10 @@ def test_able_to_get_mqtt_settings():
     assert mqtt_settings.port == 9000
     assert mqtt_settings.host == "localhost"
 
+def test_able_to_get_modbus_settings():
+    configuration = Configuration.from_file("./tests/config/example_configuration.yml")
+
+    modbus_settings = configuration.get_modbus_settings()
+
+    assert modbus_settings.port == 8080
+    assert modbus_settings.host == "localhost"

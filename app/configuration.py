@@ -19,6 +19,11 @@ class MqttSettings:
     host: str
     port: int
 
+@dataclass
+class ModbusSettings:
+    host: str
+    port: int
+
 class Configuration:
 
     def __init__(
@@ -26,17 +31,20 @@ class Configuration:
             coils: list[Coil],
             holding_registers: list[HoldingRegister], 
             mqtt_settings: MqttSettings,
+            modbus_settings: ModbusSettings,
             ):
         self.coils_map = { x.name: x for x in coils }
         self.holding_register_map = { x.name: x for x in holding_registers }
         self.mqtt_settings = mqtt_settings
+        self.modbus_settings = modbus_settings
 
     @classmethod
     def from_file(cls, path: str):
         yaml_data = path_to_yaml_data(path)
         coils, holding_registers = _coils_data_from_yaml_data(yaml_data)
         mqtt_settings = _mqtt_settings_from_yaml_data(yaml_data)
-        return cls(coils, holding_registers, mqtt_settings)
+        modbus_settings = _modbus_settings_from_yaml_data(yaml_data)
+        return cls(coils, holding_registers, mqtt_settings, modbus_settings)
     
     def get_coil(self, name: str) -> Coil:
         return self.coils_map[name]
@@ -46,10 +54,17 @@ class Configuration:
     
     def get_mqtt_settings(self) -> MqttSettings:
         return self.mqtt_settings
+    
+    def get_modbus_settings(self) -> ModbusSettings:
+        return ModbusSettings("localhost", 8080)
 
 def path_to_yaml_data(path):
     with open(path, "r", encoding="UTF8") as file:
         return yaml.safe_load(file)
+
+def _modbus_settings_from_yaml_data(data) -> ModbusSettings:
+        modbus_settings = data["modbus_settings"]
+        return ModbusSettings(modbus_settings["host"], modbus_settings["port"])
 
 def _mqtt_settings_from_yaml_data(data) -> MqttSettings:
         mqtt_settings = data["mqtt_settings"]
