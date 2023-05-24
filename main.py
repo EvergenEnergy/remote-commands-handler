@@ -7,19 +7,17 @@ from app.configuration import Configuration
 
 SLAVE=0x01
 
-BROKER_HOST = os.getenv('BROKER_HOST')
-BROKER_PORT = int(os.getenv('BROKER_PORT'))
-MODBUS_HOST = os.getenv('MODBUS_HOST')
-MODBUS_PORT = int(os.getenv('MODBUS_PORT'))
-COMMANDS_TOPIC = os.getenv('COMMANDS_TOPIC')
 CONFIGURATION_PATH = os.getenv('CONFIGURATION_PATH', "config/example_configuration.yaml")
 
 def main():
     configuration = Configuration.from_file(CONFIGURATION_PATH)
-    modbus_client = ModbusClient(configuration, MODBUS_HOST, MODBUS_PORT)
-    mqtt_client = MqttClient(BROKER_HOST, BROKER_PORT)
+    mqtt_settings = configuration.mqtt_settings
+    modbus_settings = configuration.modbus_settings
 
-    mqtt_client.subscribe_topics([COMMANDS_TOPIC])
+    modbus_client = ModbusClient(configuration, mqtt_settings.host, mqtt_settings.port)
+    mqtt_client = MqttClient(modbus_settings.host, modbus_settings.port)
+
+    mqtt_client.subscribe_topics([mqtt_settings.command_topic])
 
     def write_to_modbus(marshalled_message):
         message = json.loads(marshalled_message)
