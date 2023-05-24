@@ -1,5 +1,10 @@
+mqtt_settings:
+  host: "localhost"
+  port: 9000
+modbus_settings:
+  host: "localhost"
+  port: 8080
 modbus_mapping:
-
   holding_registers:
     - name: "evgBatteryMode"
       byte_order: "AB" # Fill this in

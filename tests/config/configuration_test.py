@@ -31,4 +31,11 @@ def test_get_holding_registers():
     assert evg_battery_target_soc_percent.scale == 1.0
     assert evg_battery_target_soc_percent.address == [2]
 
+def test_able_to_get_mqtt_settings():
+    configuration = Configuration.from_file("./tests/config/example_configuration.yml")
+
+    mqtt_settings = configuration.get_mqtt_settings()
     
+    assert mqtt_settings.port == 9000
+    assert mqtt_settings.host == "localhost"
+
