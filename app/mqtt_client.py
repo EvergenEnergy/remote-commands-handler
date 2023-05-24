@@ -45,4 +45,3 @@ class MqttClient:
             for callback in self.on_message_callbacks:
                 callback(msg)
         return inner
-
