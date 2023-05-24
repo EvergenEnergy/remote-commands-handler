@@ -1,0 +1,5 @@
+pymodbus
+paho-mqtt
+pylint
+pytest
+pyyaml
