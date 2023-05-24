@@ -18,6 +18,7 @@ class HoldingRegister:
 class MqttSettings:
     host: str
     port: int
+    command_topic: str
 
 @dataclass
 class ModbusSettings:
@@ -68,7 +69,7 @@ def _modbus_settings_from_yaml_data(data) -> ModbusSettings:
 
 def _mqtt_settings_from_yaml_data(data) -> MqttSettings:
         mqtt_settings = data["mqtt_settings"]
-        return MqttSettings(mqtt_settings["host"], mqtt_settings["port"])
+        return MqttSettings(mqtt_settings["host"], mqtt_settings["port"], mqtt_settings["command_topic"])
 
 def _coils_data_from_yaml_data(data):
     modbus_mapping = data.get("modbus_mapping", {})
