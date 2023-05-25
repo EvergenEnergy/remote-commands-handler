@@ -1,6 +1,6 @@
 """ ignore """
 
-from app.configuration import Configuration
+from app.configuration import Coil, Configuration, HoldingRegister, ModbusSettings, MqttSettings
 
 
 def test_get_coil():
@@ -47,3 +47,25 @@ def test_able_to_get_modbus_settings():
 
     assert modbus_settings.port == 8080
     assert modbus_settings.host == "localhost"
+
+def test_get_coils():
+    coils = [
+        Coil("test_coil", 1)
+    ]
+    holding_registers = []
+    mqtt_settings = MqttSettings("test", 100, "test")
+    modbus_settings = ModbusSettings("localhost", 10)
+    configuration = Configuration(coils, holding_registers, mqtt_settings, modbus_settings)
+
+    assert coils == configuration.get_coils()
+
+def test_get_registers():
+    coils = []
+    holding_registers = [
+        HoldingRegister("test", "AB", "STR", 1.0, [0])
+    ]
+    mqtt_settings = MqttSettings("test", 100, "test")
+    modbus_settings = ModbusSettings("localhost", 10)
+    configuration = Configuration(coils, holding_registers, mqtt_settings, modbus_settings)
+
+    assert holding_registers == configuration.get_holding_registers()

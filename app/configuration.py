@@ -49,6 +49,12 @@ class Configuration:
     
     def get_coil(self, name: str) -> Coil:
         return self.coils_map[name]
+
+    def get_coils(self) -> list[Coil]:
+        return list(self.coils_map.values())
+
+    def get_holding_registers(self) -> list[Coil]:
+        return list(self.holding_register_map.values())
     
     def get_holding_register(self, name: str) -> HoldingRegister:
         return self.holding_register_map[name]
