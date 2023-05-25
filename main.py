@@ -13,7 +13,7 @@ def handle_args():
     parser = argparse.ArgumentParser(description='remote commands handler')
 
     # Add the optional arguments
-    parser.add_argument('--configuration_path', required=True, help='Configuration path')
+    parser.add_argument('--configuration_path', required=True, help='Configuration path', default='config/configuration.yaml')
     parser.add_argument('--modbus_port', type=int, help='Modbus port')
     parser.add_argument('--modbus_host', help='Modbus host')
     parser.add_argument('--mqtt_port', type=int, help='MQTT port')
