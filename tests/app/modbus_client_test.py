@@ -62,7 +62,7 @@ def test_write_holding_registers():
             "AB",
             "INT16",
             1.0,
-            1
+            [1]
         )
     ]
     mqtt_settings = MqttSettings("test", 100, "test")
