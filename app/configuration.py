@@ -1,5 +1,8 @@
+import os
 from dataclasses import dataclass
 import yaml
+
+from app.exceptions import ConfigurationFileNotFoundError
 
 
 @dataclass
@@ -46,6 +49,8 @@ class Configuration:
 
     @classmethod
     def from_file(cls, path: str):
+        if not os.path.exists(path):
+            raise ConfigurationFileNotFoundError(path)
         yaml_data = path_to_yaml_data(path)
         coils, holding_registers = _coils_data_from_yaml_data(yaml_data)
         mqtt_settings = _mqtt_settings_from_yaml_data(yaml_data)
