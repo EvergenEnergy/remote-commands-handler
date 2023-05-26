@@ -12,6 +12,7 @@ def test_get_coil():
     assert evg_battery_mode_coil_address.address == [3]
     assert target_watt_coil.address == [4]
 
+
 def test_get_holding_registers():
     configuration = Configuration.from_file("./tests/config/example_configuration.yml")
 
@@ -31,14 +32,16 @@ def test_get_holding_registers():
     assert evg_battery_target_soc_percent.scale == 1.0
     assert evg_battery_target_soc_percent.address == [2]
 
+
 def test_able_to_get_mqtt_settings():
     configuration = Configuration.from_file("./tests/config/example_configuration.yml")
 
     mqtt_settings = configuration.get_mqtt_settings()
-    
+
     assert mqtt_settings.port == 9000
     assert mqtt_settings.host == "localhost"
     assert mqtt_settings.command_topic == "commands/*"
+
 
 def test_able_to_get_modbus_settings():
     configuration = Configuration.from_file("./tests/config/example_configuration.yml")
@@ -47,6 +50,7 @@ def test_able_to_get_modbus_settings():
 
     assert modbus_settings.port == 8080
     assert modbus_settings.host == "localhost"
+
 
 def test_get_coils():
     coils = [
@@ -58,6 +62,7 @@ def test_get_coils():
     configuration = Configuration(coils, holding_registers, mqtt_settings, modbus_settings)
 
     assert coils == configuration.get_coils()
+
 
 def test_get_registers():
     coils = []
