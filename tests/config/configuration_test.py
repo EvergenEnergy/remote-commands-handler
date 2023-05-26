@@ -64,8 +64,8 @@ def test_able_to_get_modbus_settings():
 
     modbus_settings = configuration.get_modbus_settings()
 
-    assert modbus_settings.port == 9000
-    assert modbus_settings.host == "mqtt.host"
+    assert modbus_settings.port == 8080
+    assert modbus_settings.host == "modbus.host"
 
 
 def test_get_coils():

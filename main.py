@@ -33,14 +33,15 @@ def get_configuration_with_overrides(args):
     modbus_settings = configuration.get_modbus_settings()
 
     mqtt_settings_with_override = MqttSettings(
-        args_as_dict.get("mqtt_host", mqtt_settings.host),
-        args_as_dict.get("mqtt_port", mqtt_settings.port),
-        args_as_dict.get("mqtt_topic", mqtt_settings.command_topic),
+        args_as_dict.get("mqtt_host") or mqtt_settings.host,
+        args_as_dict.get("mqtt_port") or mqtt_settings.port,
+        args_as_dict.get("mqtt_topic") or mqtt_settings.command_topic,
     )
 
+
     modbus_settings_with_override = ModbusSettings(
-        args_as_dict.get("modbus_host", modbus_settings.host),
-        args_as_dict.get("modbus_port", modbus_settings.port),
+        args_as_dict.get("modbus_host") or modbus_settings.host,
+        args_as_dict.get("modbus_port") or modbus_settings.port,
     )
 
     return Configuration(
