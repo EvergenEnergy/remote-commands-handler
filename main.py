@@ -9,7 +9,8 @@ from app.configuration import Configuration, ModbusSettings, MqttSettings
 
 def handle_args():
     # Create the argument parser
-    parser = argparse.ArgumentParser(description='remote commands handler')
+    parser = argparse.ArgumentParser(description='remote commands handler',
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Add the optional arguments
     parser.add_argument('--configuration_path', required=True,
@@ -21,8 +22,6 @@ def handle_args():
     parser.add_argument('--mqtt_port', type=int, help='The port number for the MQTT server. Expected to be an integer.')
     parser.add_argument('--mqtt_host', help='The host address for the MQTT server. Expected to be a string.')
     parser.add_argument('--mqtt_topic', help='The MQTT topic to subscribe to. Expected to be a string.')
-    parser = argparse.ArgumentParser(description='remote commands handler',
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     return parser.parse_args()
 
