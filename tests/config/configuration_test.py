@@ -1,10 +1,17 @@
 """ ignore """
+import pytest
 
 from app.configuration import Coil, Configuration, HoldingRegister, ModbusSettings, MqttSettings
+from app.exceptions import ConfigurationFileNotFoundError
+
+
+def test_throws_exception_when_configuration_file_not_found():
+    with pytest.raises(ConfigurationFileNotFoundError):
+        Configuration.from_file("./tests/config/bad-example_configuration.yml")
 
 
 def test_get_coil():
-    configuration = Configuration.from_file("./tests/config/example_configuration.yml")
+    configuration = Configuration.from_file("./example_configuration.yml")
 
     evg_battery_mode_coil_address = configuration.get_coil("evgBatteryModeCoil")
     target_watt_coil = configuration.get_coil("evgBatteryTargetPowerWattsCoil")
@@ -14,7 +21,7 @@ def test_get_coil():
 
 
 def test_get_holding_registers():
-    configuration = Configuration.from_file("./tests/config/example_configuration.yml")
+    configuration = Configuration.from_file("./example_configuration.yml")
 
     evg_battery_mode = configuration.get_holding_register("evgBatteryMode")
 
@@ -34,22 +41,22 @@ def test_get_holding_registers():
 
 
 def test_able_to_get_mqtt_settings():
-    configuration = Configuration.from_file("./tests/config/example_configuration.yml")
+    configuration = Configuration.from_file("./example_configuration.yml")
 
     mqtt_settings = configuration.get_mqtt_settings()
 
     assert mqtt_settings.port == 9000
-    assert mqtt_settings.host == "localhost"
-    assert mqtt_settings.command_topic == "commands/*"
+    assert mqtt_settings.host == "mqtt.host"
+    assert mqtt_settings.command_topic == "commands/#"
 
 
 def test_able_to_get_modbus_settings():
-    configuration = Configuration.from_file("./tests/config/example_configuration.yml")
+    configuration = Configuration.from_file("./example_configuration.yml")
 
     modbus_settings = configuration.get_modbus_settings()
 
-    assert modbus_settings.port == 8080
-    assert modbus_settings.host == "localhost"
+    assert modbus_settings.port == 9000
+    assert modbus_settings.host == "mqtt.host"
 
 
 def test_get_coils():

@@ -73,7 +73,7 @@ class Configuration:
         return self.mqtt_settings
 
     def get_modbus_settings(self) -> ModbusSettings:
-        return ModbusSettings("localhost", 8080)
+        return ModbusSettings(self.mqtt_settings.host, self.mqtt_settings.port)
 
 
 def path_to_yaml_data(path):

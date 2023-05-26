@@ -1,10 +1,10 @@
 mqtt_settings:
-  host: "localhost"
+  host: "mqtt.host"
   port: 9000
-  command_topic: "commands/*"
+  command_topic: "commands/#"
 
 modbus_settings:
-  host: "localhost"
+  host: "modbus.host"
   port: 8080
 
 modbus_mapping:
