@@ -4,21 +4,25 @@ import json
 import argparse
 from app.modbus_client import ModbusClient
 from app.mqtt_client import MqttClient
-from app.configuration import Configuration, ModbusSettings, MqttSettings 
+from app.configuration import Configuration, ModbusSettings, MqttSettings
 
-SLAVE=0x01
 
 def handle_args():
     # Create the argument parser
     parser = argparse.ArgumentParser(description='remote commands handler')
 
     # Add the optional arguments
-    parser.add_argument('--configuration_path', required=True, help='Configuration path', default='config/configuration.yaml')
-    parser.add_argument('--modbus_port', type=int, help='Modbus port')
-    parser.add_argument('--modbus_host', help='Modbus host')
-    parser.add_argument('--mqtt_port', type=int, help='MQTT port')
-    parser.add_argument('--mqtt_host', help='MQTT host')
-    parser.add_argument('--mqtt_topic', help='MQTT topic')
+    parser.add_argument('--configuration_path', required=True,
+                        help='Path to the configuration file. By default, this is "config/configuration.yaml".',
+                        default='config/configuration.yaml')
+    parser.add_argument('--modbus_port', type=int,
+                        help='The port number for the Modbus server. Expected to be an integer.')
+    parser.add_argument('--modbus_host', help='The host address for the Modbus server. Expected to be a string.')
+    parser.add_argument('--mqtt_port', type=int, help='The port number for the MQTT server. Expected to be an integer.')
+    parser.add_argument('--mqtt_host', help='The host address for the MQTT server. Expected to be a string.')
+    parser.add_argument('--mqtt_topic', help='The MQTT topic to subscribe to. Expected to be a string.')
+    parser = argparse.ArgumentParser(description='remote commands handler',
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     return parser.parse_args()
 
@@ -46,10 +50,12 @@ def get_configuration_with_overrides(args):
         mqtt_settings_with_override,
         modbus_settings_with_override,
     )
-    
+
 
 def setup_modbus_client(configuration: Configuration) -> ModbusClient:
-    return ModbusClient(configuration, configuration.get_modbus_settings().port, configuration.get_modbus_settings().host)
+    return ModbusClient(configuration, configuration.get_modbus_settings().port,
+                        configuration.get_modbus_settings().host)
+
 
 def setup_mqtt_client(configuration: Configuration) -> MqttClient:
     return MqttClient(configuration.get_mqtt_settings().port, configuration.get_mqtt_settings().host)
@@ -72,7 +78,6 @@ def main():
     mqtt_client.add_message_callback(write_to_modbus)
 
     mqtt_client.run()
-
 
 
 if __name__ == '__main__':
