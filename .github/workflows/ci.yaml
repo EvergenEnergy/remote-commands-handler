@@ -1,10 +1,9 @@
-name: Python package
-
-on: [push]
+name: Test & Linting
+on:
+  push:
 
 jobs:
-  build:
-
+  ci:
     runs-on: ubuntu-latest
     strategy:
       matrix:
