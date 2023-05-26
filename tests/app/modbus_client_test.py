@@ -3,21 +3,25 @@ import threading
 from multiprocessing import Pipe
 
 from app.modbus_client import ModbusClient
-from app.configuration import Coil, Configuration, HoldingRegister
+from app.configuration import Coil, Configuration, HoldingRegister, ModbusSettings, MqttSettings
+
 
 def test_write_coil():
     coils = [
-        Coil("test_coil", 1)
+        Coil("test_coil", [1])
     ]
     holding_registers = []
-    configuration = Configuration(coils, holding_registers)
+    mqtt_settings = MqttSettings("test", 100, "test")
 
     read, write = Pipe(duplex=False)
 
     def test(_message):
         write.send(True)
+
     thread, port = start_local_tcp_client(test)
 
+    modbus_settings = ModbusSettings("localhost", port)
+    configuration = Configuration(coils, holding_registers, mqtt_settings, modbus_settings)
     client = ModbusClient(configuration, port, "localhost")
     client.write_coil("test_coil", True)
 
@@ -25,25 +29,30 @@ def test_write_coil():
     thread.join()
     assert sent is True
 
+
 def test_write_coils():
     coils = [
-        Coil("test_coil", 1)
+        Coil("test_coil", [1])
     ]
     holding_registers = []
-    configuration = Configuration(coils, holding_registers)
+    mqtt_settings = MqttSettings("test", 100, "test")
 
     read, write = Pipe(duplex=False)
 
     def test(_message):
         write.send(True)
+
     thread, port = start_local_tcp_client(test)
 
+    modbus_settings = ModbusSettings("localhost", port)
+    configuration = Configuration(coils, holding_registers, mqtt_settings, modbus_settings)
     client = ModbusClient(configuration, port, "localhost")
     client.write_coils("test_coil", [True, True])
 
     sent = read.recv()
     thread.join()
     assert sent is True
+
 
 def test_write_holding_registers():
     coils = []
@@ -53,24 +62,28 @@ def test_write_holding_registers():
             "AB",
             "INT16",
             1.0,
-            1
+            [1]
         )
     ]
-    configuration = Configuration(coils, holding_registers)
+    mqtt_settings = MqttSettings("test", 100, "test")
 
     read, write = Pipe(duplex=False)
 
     def test(_message):
         print(_message)
         write.send(True)
+
     thread, port = start_local_tcp_client(test)
 
+    modbus_settings = ModbusSettings("localhost", port)
+    configuration = Configuration(coils, holding_registers, mqtt_settings, modbus_settings)
     client = ModbusClient(configuration, port, "localhost")
     client.write_register("test_register", 10)
 
     sent = read.recv()
     thread.join()
     assert sent is True
+
 
 def start_local_tcp_client(f):
     read, write = Pipe(duplex=False)
@@ -79,10 +92,12 @@ def start_local_tcp_client(f):
     port = read.recv()
     return tcp_thread, port
 
+
 def handle_socket_message(client_socket: socket.socket, call_back):
-   message = client_socket.recv(40) 
-   client_socket.send(message)
-   call_back(message)
+    message = client_socket.recv(40)
+    client_socket.send(message)
+    call_back(message)
+
 
 def setup_tcp_client(f, chan) -> threading.Thread:
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -110,4 +125,3 @@ def setup_tcp_client(f, chan) -> threading.Thread:
     client_thread = threading.Thread(target=handle_socket_message, args=(client_socket, f))
     client_thread.start()
     return port
-

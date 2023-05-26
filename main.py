@@ -1,25 +1,75 @@
 import os
 import json
 
+import argparse
 from app.modbus_client import ModbusClient
 from app.mqtt_client import MqttClient
-from app.configuration import Configuration
+from app.configuration import Configuration, ModbusSettings, MqttSettings
 
-SLAVE=0x01
 
-BROKER_HOST = os.getenv('BROKER_HOST')
-BROKER_PORT = int(os.getenv('BROKER_PORT'))
-MODBUS_HOST = os.getenv('MODBUS_HOST')
-MODBUS_PORT = int(os.getenv('MODBUS_PORT'))
-COMMANDS_TOPIC = os.getenv('COMMANDS_TOPIC')
-CONFIGURATION_PATH = os.getenv('CONFIGURATION_PATH', "config/example_configuration.yaml")
+def handle_args():
+    # Create the argument parser
+    parser = argparse.ArgumentParser(description='remote commands handler')
+
+    # Add the optional arguments
+    parser.add_argument('--configuration_path', required=True,
+                        help='Path to the configuration file. By default, this is "config/configuration.yaml".',
+                        default='config/configuration.yaml')
+    parser.add_argument('--modbus_port', type=int,
+                        help='The port number for the Modbus server. Expected to be an integer.')
+    parser.add_argument('--modbus_host', help='The host address for the Modbus server. Expected to be a string.')
+    parser.add_argument('--mqtt_port', type=int, help='The port number for the MQTT server. Expected to be an integer.')
+    parser.add_argument('--mqtt_host', help='The host address for the MQTT server. Expected to be a string.')
+    parser.add_argument('--mqtt_topic', help='The MQTT topic to subscribe to. Expected to be a string.')
+    parser = argparse.ArgumentParser(description='remote commands handler',
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    return parser.parse_args()
+
+def get_configuration_with_overrides(args):
+    args_as_dict = vars(args)
+    configuration = Configuration.from_file(args.configuration_path)
+
+    mqtt_settings = configuration.get_mqtt_settings()
+    modbus_settings = configuration.get_modbus_settings()
+
+    mqtt_settings_with_override = MqttSettings(
+        args_as_dict.get("mqtt_host", mqtt_settings.host),
+        args_as_dict.get("mqtt_port", mqtt_settings.port),
+        args_as_dict.get("mqtt_topic", mqtt_settings.command_topic),
+    )
+
+    modbus_settings_with_override = ModbusSettings(
+        args_as_dict.get("modbus_host", modbus_settings.host),
+        args_as_dict.get("modbus_port", modbus_settings.port),
+    )
+
+    return Configuration(
+        configuration.get_coils(),
+        configuration.get_holding_registers(),
+        mqtt_settings_with_override,
+        modbus_settings_with_override,
+    )
+
+
+def setup_modbus_client(configuration: Configuration) -> ModbusClient:
+    return ModbusClient(configuration, configuration.get_modbus_settings().port,
+                        configuration.get_modbus_settings().host)
+
+
+def setup_mqtt_client(configuration: Configuration) -> MqttClient:
+    return MqttClient(configuration.get_mqtt_settings().port, configuration.get_mqtt_settings().host)
+
 
 def main():
-    configuration = Configuration.from_file(CONFIGURATION_PATH)
-    modbus_client = ModbusClient(configuration, MODBUS_HOST, MODBUS_PORT)
-    mqtt_client = MqttClient(BROKER_HOST, BROKER_PORT)
+    args = handle_args()
 
-    mqtt_client.subscribe_topics([COMMANDS_TOPIC])
+    configuration = get_configuration_with_overrides(args)
+
+    modbus_client = setup_modbus_client(configuration)
+    mqtt_client = setup_mqtt_client(configuration)
+
+    mqtt_client.subscribe_topics([configuration.mqtt_settings.command_topic])
 
     def write_to_modbus(marshalled_message):
         message = json.loads(marshalled_message)
@@ -28,7 +78,6 @@ def main():
     mqtt_client.add_message_callback(write_to_modbus)
 
     mqtt_client.run()
-
 
 
 if __name__ == '__main__':

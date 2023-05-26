@@ -1,5 +1,13 @@
-modbus_mapping:
+mqtt_settings:
+  host: "mqtt.host"
+  port: 9000
+  command_topic: "commands/#"
 
+modbus_settings:
+  host: "modbus.host"
+  port: 8080
+
+modbus_mapping:
   holding_registers:
     - name: "evgBatteryMode"
       byte_order: "AB" # Fill this in
