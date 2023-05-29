@@ -9,7 +9,7 @@ from app.exceptions import ConfigurationFileNotFoundError
 
 def test_throws_exception_when_configuration_file_not_found():
     with pytest.raises(ConfigurationFileNotFoundError):
-        Configuration.from_file("./tests/config/bad-example_configuration.yml")
+        Configuration.from_file("./tests/config/bad-example_configuration.yaml")
 
 
 def test_get_coil():
@@ -25,7 +25,7 @@ def test_get_coil():
 
 def _config_path():
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    config_path = os.path.join(current_dir, "./example_configuration.yml")
+    config_path = os.path.join(current_dir, "example_configuration.yaml")
     return config_path
 
 
