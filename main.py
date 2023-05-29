@@ -2,6 +2,9 @@ import os
 import json
 
 import argparse
+
+from paho import mqtt
+
 from app.modbus_client import ModbusClient
 from app.mqtt_client import MqttClient
 from app.configuration import Configuration, ModbusSettings, MqttSettings
@@ -58,7 +61,7 @@ def setup_modbus_client(configuration: Configuration) -> ModbusClient:
 
 
 def setup_mqtt_client(configuration: Configuration) -> MqttClient:
-    return MqttClient(configuration.get_mqtt_settings().port, configuration.get_mqtt_settings().host)
+    return MqttClient(configuration.get_mqtt_settings().port, configuration.get_mqtt_settings().host, mqtt.Client())
 
 
 def main():

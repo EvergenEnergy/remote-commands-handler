@@ -6,8 +6,10 @@ def _decode_message(message):
 
 
 class MqttClient:
-    def __init__(self, port: int, host: str) -> None:
-        self.client = mqtt.Client()
+    _client: mqtt.Client
+
+    def __init__(self, port: int, host: str, client: mqtt.Client) -> None:
+        self._client = client
         self.host = host
         self.port = port
         self.on_message_callbacks = []
@@ -24,11 +26,15 @@ class MqttClient:
         """
         this is a blocking operation.
         """
-        self.client.on_connect = self._on_connect()
-        self.client.on_message = self._on_message()
+        self._client.on_connect = self._on_connect()
+        self._client.on_message = self._on_message()
 
-        self.client.connect(self.host, self.port)
-        self.client.loop_forever()
+        try:
+            self._client.connect(self.host, self.port)
+        except OSError as e:
+            raise OSError(f"Cannot assign requested address: {self.host}:{self.port}") from e
+
+        self._client.loop_forever()
 
     def _on_connect(self):
         def inner(client, _userdata, _flags, rc):

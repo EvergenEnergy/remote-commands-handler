@@ -2,6 +2,7 @@ import os
 from dataclasses import dataclass
 import yaml
 
+
 from app.exceptions import ConfigurationFileNotFoundError
 
 
