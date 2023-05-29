@@ -9,7 +9,8 @@ from app.configuration import Configuration, ModbusSettings, MqttSettings
 
 def handle_args():
     # Create the argument parser
-    parser = argparse.ArgumentParser(description='remote commands handler')
+    parser = argparse.ArgumentParser(description='remote commands handler',
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Add the optional arguments
     parser.add_argument('--configuration_path', required=True,
@@ -21,8 +22,6 @@ def handle_args():
     parser.add_argument('--mqtt_port', type=int, help='The port number for the MQTT server. Expected to be an integer.')
     parser.add_argument('--mqtt_host', help='The host address for the MQTT server. Expected to be a string.')
     parser.add_argument('--mqtt_topic', help='The MQTT topic to subscribe to. Expected to be a string.')
-    parser = argparse.ArgumentParser(description='remote commands handler',
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     return parser.parse_args()
 
@@ -34,14 +33,15 @@ def get_configuration_with_overrides(args):
     modbus_settings = configuration.get_modbus_settings()
 
     mqtt_settings_with_override = MqttSettings(
-        args_as_dict.get("mqtt_host", mqtt_settings.host),
-        args_as_dict.get("mqtt_port", mqtt_settings.port),
-        args_as_dict.get("mqtt_topic", mqtt_settings.command_topic),
+        args_as_dict.get("mqtt_host") or mqtt_settings.host,
+        args_as_dict.get("mqtt_port") or mqtt_settings.port,
+        args_as_dict.get("mqtt_topic") or mqtt_settings.command_topic,
     )
 
+
     modbus_settings_with_override = ModbusSettings(
-        args_as_dict.get("modbus_host", modbus_settings.host),
-        args_as_dict.get("modbus_port", modbus_settings.port),
+        args_as_dict.get("modbus_host") or modbus_settings.host,
+        args_as_dict.get("modbus_port") or modbus_settings.port,
     )
 
     return Configuration(

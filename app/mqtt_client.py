@@ -24,14 +24,14 @@ class MqttClient:
         """
         this is a blocking operation.
         """
-        self.client.on_connect = self._on_connect
-        self.client.on_message = self._on_message
+        self.client.on_connect = self._on_connect()
+        self.client.on_message = self._on_message()
 
         self.client.connect(self.host, self.port)
         self.client.loop_forever()
 
     def _on_connect(self):
-        def inner(client, rc):
+        def inner(client, _userdata, _flags, rc):
             if rc == 0:
                 print("Connected to MQTT broker")
                 for topic in self.topics:
@@ -42,7 +42,7 @@ class MqttClient:
         return inner
 
     def _on_message(self):
-        def inner(message):
+        def inner(_client, _userdata, message):
             msg = _decode_message(message)
             for callback in self.on_message_callbacks:
                 callback(msg)
