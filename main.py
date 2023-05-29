@@ -13,7 +13,7 @@ def handle_args():
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Add the optional arguments
-    parser.add_argument('--configuration_path', required=True,
+    parser.add_argument('--configuration_path',
                         help='Path to the configuration file. By default, this is "config/configuration.yaml".',
                         default='config/configuration.yaml')
     parser.add_argument('--modbus_port', type=int,
