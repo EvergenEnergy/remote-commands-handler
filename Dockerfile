@@ -17,4 +17,4 @@ FROM python as runtime
 ENV PATH="/app/.venv/bin:$PATH"
 
 COPY --from=poetry /app /app
-CMD "./run.sh"
+ENTRYPOINT ["./run.sh"]
