@@ -5,9 +5,9 @@ from app.configuration import Configuration
 class ModbusClient:
     _client: ModbusTcpClient
 
-    def __init__(self, configuration: Configuration, port: int, host: str) -> None:
+    def __init__(self, configuration: Configuration, modbus_client: ModbusTcpClient) -> None:
         self.configuration = configuration
-        self._client = ModbusTcpClient(host, port=port)
+        self._client = modbus_client
 
     def write_coils(self, name: str, value: list[bool]):
         coil_configuration = self.configuration.get_coil(name)

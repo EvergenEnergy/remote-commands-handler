@@ -4,6 +4,7 @@ import json
 import argparse
 
 from paho import mqtt
+from pymodbus.client import ModbusTcpClient
 
 from app.modbus_client import ModbusClient
 from app.mqtt_client import MqttClient
@@ -56,8 +57,7 @@ def get_configuration_with_overrides(args):
 
 
 def setup_modbus_client(configuration: Configuration) -> ModbusClient:
-    return ModbusClient(configuration, configuration.get_modbus_settings().port,
-                        configuration.get_modbus_settings().host)
+    return ModbusClient(configuration, )
 
 
 def setup_mqtt_client(configuration: Configuration) -> MqttClient:

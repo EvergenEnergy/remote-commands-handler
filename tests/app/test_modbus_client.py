@@ -3,6 +3,8 @@ import socket
 import threading
 from multiprocessing import Pipe
 
+from pymodbus.client import ModbusTcpClient
+
 from app.modbus_client import ModbusClient
 from app.configuration import Coil, Configuration, HoldingRegister, ModbusSettings, MqttSettings
 
@@ -57,7 +59,7 @@ class TestModbusClient(unittest.TestCase):
         thread, port = self.start_local_tcp_client(test)
         modbus_settings = ModbusSettings("localhost", port)
         configuration = Configuration(self.coils, [], self.mqtt_settings, modbus_settings)
-        client = ModbusClient(configuration, port, "localhost")
+        client = ModbusClient(configuration, ModbusTcpClient("localhost", port=port))
         client.write_coil("test_coil", True)
         sent = read.recv()
         thread.join()
@@ -72,7 +74,7 @@ class TestModbusClient(unittest.TestCase):
         thread, port = self.start_local_tcp_client(test)
         modbus_settings = ModbusSettings("localhost", port)
         configuration = Configuration(self.coils, [], self.mqtt_settings, modbus_settings)
-        client = ModbusClient(configuration, port, "localhost")
+        client = ModbusClient(configuration, ModbusTcpClient("localhost", port=port))
         client.write_coils("test_coil", [True, True])
         sent = read.recv()
         thread.join()
@@ -88,7 +90,7 @@ class TestModbusClient(unittest.TestCase):
         thread, port = self.start_local_tcp_client(test)
         modbus_settings = ModbusSettings("localhost", port)
         configuration = Configuration([], self.holding_registers, self.mqtt_settings, modbus_settings)
-        client = ModbusClient(configuration, port, "localhost")
+        client = ModbusClient(configuration, ModbusTcpClient("localhost", port=port))
         client.write_register("test_register", 10)
         sent = read.recv()
         thread.join()
