@@ -1,11 +1,11 @@
 mqtt_settings:
-  host: "127.0.0.1"
+  host: "localhost"
   port: 1883
   command_topic: "commands/#" # The mqtt topic that contains the relevant commands.
 
 modbus_settings:
-  host: "127.0.0.1"
-  port: 8080
+  host: "localhost"
+  port: 502
 
 modbus_mapping:
   holding_registers:

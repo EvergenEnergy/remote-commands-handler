@@ -27,8 +27,13 @@ jobs:
         with:
           images: |
             ghcr.io/${{ github.repository }}
+          flavor: |
+                latest=${{ github.ref == 'refs/heads/main' }}
           tags: |
+            type=ref,event=branch
+            type=ref,event=tag
             type=sha
+            type=semver,pattern={{version}}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
