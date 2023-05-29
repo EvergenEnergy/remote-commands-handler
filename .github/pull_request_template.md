@@ -4,7 +4,7 @@
 
 ## Why?
 
-<<ChangeMe: Explain why this changes are needed>>
+<<ChangeMe: Explain why these changes are needed>>
 
 ## Testing/Proof
 
