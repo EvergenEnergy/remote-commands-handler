@@ -8,4 +8,4 @@
 
 ## Testing/Proof
 
-Explain, when applicable, how were this changes tested
+Explain, when applicable, how were these changes tested
