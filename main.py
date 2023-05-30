@@ -97,6 +97,7 @@ def setup_mqtt_client(configuration: Configuration) -> MqttClient:
 def main():
     loglevel = os.getenv("LOGLEVEL", "INFO").upper()
     logging.basicConfig(level=getattr(logging, loglevel))
+    logging.info("starting service")
     args = handle_args()
 
     configuration = get_configuration_with_overrides(args)
@@ -106,11 +107,16 @@ def main():
 
     mqtt_client.subscribe_topics([configuration.mqtt_settings.command_topic])
 
-    def write_to_modbus(marshalled_message):
+    def write_to_coil(marshalled_message):
         message = json.loads(marshalled_message)
         modbus_client.write_coil(message["action"], message["value"])
 
-    mqtt_client.add_message_callback(write_to_modbus)
+    def write_to_holding_register(marshalled_message):
+        message = json.loads(marshalled_message)
+        modbus_client.write_register(message["action"], message["value"])
+
+    mqtt_client.add_message_callback(write_to_coil)
+    mqtt_client.add_message_callback(write_to_holding_register)
 
     mqtt_client.run()
 

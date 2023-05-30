@@ -1,5 +1,5 @@
 import logging
-
+from json import JSONDecodeError
 import paho.mqtt.client as mqtt
 
 
@@ -45,6 +45,7 @@ class MqttClient:
             if rc == 0:
                 logging.info("Connected to MQTT broker")
                 for topic in self.topics:
+                    print("subscribing to topic: ", topic)
                     client.subscribe(topic)
             else:
                 logging.error("Connection failed")
@@ -53,8 +54,14 @@ class MqttClient:
 
     def _on_message(self):
         def inner(_client, _userdata, message):
-            msg = _decode_message(message)
-            for callback in self.on_message_callbacks:
-                callback(msg)
+            try:    
+                msg = _decode_message(message)
+                print("received message: ", msg)
+                for callback in self.on_message_callbacks:
+                    callback(msg)
+            except JSONDecodeError:
+                print("error on decoding message: ", msg)
+
+
 
         return inner
