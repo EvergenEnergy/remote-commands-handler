@@ -2,6 +2,7 @@
 import os
 
 import pytest
+from pymodbus.constants import Endian
 
 from app.configuration import (
     Coil,
@@ -40,7 +41,7 @@ def test_get_holding_registers():
     evg_battery_mode = configuration.get_holding_register("evgBatteryMode")
 
     assert evg_battery_mode.name == "evgBatteryMode"
-    assert evg_battery_mode.byte_order == "AB"
+    assert evg_battery_mode.memory_order.order() == (Endian.Big, Endian.Big)
     assert evg_battery_mode.data_type == "INT16"
     assert evg_battery_mode.scale == 1.0
     assert evg_battery_mode.address == [0]
@@ -50,7 +51,7 @@ def test_get_holding_registers():
     )
 
     assert evg_battery_target_soc_percent.name == "evgBatteryTargetSOCPercent"
-    assert evg_battery_target_soc_percent.byte_order == "AB"
+    assert evg_battery_target_soc_percent.memory_order.order() == (Endian.Big, Endian.Big)
     assert evg_battery_target_soc_percent.data_type == "INT16"
     assert evg_battery_target_soc_percent.scale == 1.0
     assert evg_battery_target_soc_percent.address == [2]
