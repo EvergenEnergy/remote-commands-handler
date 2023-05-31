@@ -1,6 +1,5 @@
 from pymodbus.constants import Endian
 
-
 class MemoryOrder:
     """
     Describes the byte order and word order
@@ -11,7 +10,6 @@ class MemoryOrder:
 
     def order(self):
         return self._order
-
     def _str_to_endian(self, order_string: str):
         word_order = Endian.Big
         byte_order = Endian.Big
