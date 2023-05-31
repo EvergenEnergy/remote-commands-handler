@@ -4,6 +4,7 @@ import threading
 from multiprocessing import Pipe
 
 from pymodbus.client import ModbusTcpClient
+from app.memory_order import MemoryOrder
 
 from app.modbus_client import ModbusClient
 from app.configuration import (
@@ -20,7 +21,7 @@ class TestModbusClient(unittest.TestCase):
         # This method will be called before every test
         self.coils = [Coil("test_coil", [1])]
         self.holding_registers = [
-            HoldingRegister("test_register", "AB", "INT16", 1.0, [1])
+            HoldingRegister("test_register", MemoryOrder("AB"), "INT16", 1.0, [1])
         ]
         self.mqtt_settings = MqttSettings("test", 100, "test")
 
