@@ -98,8 +98,12 @@ def setup_mqtt_client(configuration: Configuration) -> MqttClient:
 
 def main():
     loglevel = os.getenv("LOGLEVEL", "INFO").upper()
-    logging.basicConfig(level=getattr(logging, loglevel))
-    logging.info("starting service")
+    logging.basicConfig(
+        level=getattr(logging, loglevel),
+        format="%(asctime)s:%(levelname)s:%(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    logging.info("Starting service")
     args = handle_args()
 
     configuration = get_configuration_with_overrides(args)

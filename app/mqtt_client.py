@@ -43,6 +43,7 @@ class MqttClient:
                 f"Cannot assign requested address: {self.host}:{self.port}"
             ) from e
 
+        logging.info("Service started")
         self._client.loop_forever()
 
     def _on_connect(self):
@@ -50,7 +51,7 @@ class MqttClient:
             if rc == 0:
                 logging.info("Connected to MQTT broker")
                 for topic in self.topics:
-                    logging.info("subscribing to topic: %s", topic)
+                    logging.info("Subscribing to topic: %s", topic)
                     client.subscribe(topic)
             else:
                 logging.error("Connection failed")
@@ -61,10 +62,10 @@ class MqttClient:
         def inner(_client, _userdata, message):
             try:
                 msg = _decode_message(message)
-                logging.debug("received message: %s", msg)
+                logging.debug("Received message: %s", msg)
                 for callback in self.on_message_callbacks:
                     callback(msg)
             except JSONDecodeError:
-                logging.error("error on decoding message: %s", msg)
+                logging.error("Error on decoding message: %s", msg)
 
         return inner
