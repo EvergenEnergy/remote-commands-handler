@@ -20,7 +20,6 @@ class ModbusClient:
             print("wrote to coils", name, " value: ", value)
         except KeyError:
             print("unknown action: ", name)
-            
 
     def write_coil(self, name: str, value: bool):
         try:
@@ -34,9 +33,13 @@ class ModbusClient:
 
     def write_register(self, name: str, value):
         try:
-            holding_register_configuration = self.configuration.get_holding_register(name)
+            holding_register_configuration = self.configuration.get_holding_register(
+                name
+            )
             self._client.connect()
-            self._client.write_register(holding_register_configuration.address[0], value, 1)
+            self._client.write_register(
+                holding_register_configuration.address[0], value, 1
+            )
             self._client.close()
             print("wrote to register", name, " value: ", value)
         except KeyError:

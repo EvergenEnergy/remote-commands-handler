@@ -51,7 +51,10 @@ def test_get_holding_registers():
     )
 
     assert evg_battery_target_soc_percent.name == "evgBatteryTargetSOCPercent"
-    assert evg_battery_target_soc_percent.memory_order.order() == (Endian.Big, Endian.Big)
+    assert evg_battery_target_soc_percent.memory_order.order() == (
+        Endian.Big,
+        Endian.Big,
+    )
     assert evg_battery_target_soc_percent.data_type == "INT16"
     assert evg_battery_target_soc_percent.scale == 1.0
     assert evg_battery_target_soc_percent.address == [2]

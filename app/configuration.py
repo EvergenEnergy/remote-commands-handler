@@ -53,7 +53,7 @@ class Configuration:
         if not os.path.exists(path):
             raise ConfigurationFileNotFoundError(path)
         yaml_data = path_to_yaml_data(path)
-        coils  = _coils_data_from_yaml_data(yaml_data)
+        coils = _coils_data_from_yaml_data(yaml_data)
         holding_registers = _holding_register_from_yaml_data(yaml_data)
         mqtt_settings = _mqtt_settings_from_yaml_data(yaml_data)
         modbus_settings = _modbus_settings_from_yaml_data(yaml_data)
@@ -97,9 +97,12 @@ def _mqtt_settings_from_yaml_data(data) -> MqttSettings:
 
 def _coils_data_from_yaml_data(data):
     modbus_mapping = data.get("modbus_mapping", {})
-    coils = [Coil(coil["name"], coil["address"]) for coil in modbus_mapping.get("coils", [])]
+    coils = [
+        Coil(coil["name"], coil["address"]) for coil in modbus_mapping.get("coils", [])
+    ]
 
-    return coils 
+    return coils
+
 
 def _holding_register_from_yaml_data(data):
     modbus_mapping = data.get("modbus_mapping", {})
@@ -107,8 +110,13 @@ def _holding_register_from_yaml_data(data):
     holding_registers = []
     for register in modbus_mapping.get("holding_registers", []):
         memory_order = MemoryOrder(register["byte_order"])
-        register = HoldingRegister(register["name"], memory_order, register["data_type"], register["scale"],
-                        register["address"])
+        register = HoldingRegister(
+            register["name"],
+            memory_order,
+            register["data_type"],
+            register["scale"],
+            register["address"],
+        )
         holding_registers.append(register)
-    
+
     return holding_registers

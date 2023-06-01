@@ -54,14 +54,12 @@ class MqttClient:
 
     def _on_message(self):
         def inner(_client, _userdata, message):
-            try:    
+            try:
                 msg = _decode_message(message)
                 print("received message: ", msg)
                 for callback in self.on_message_callbacks:
                     callback(msg)
             except JSONDecodeError:
                 print("error on decoding message: ", msg)
-
-
 
         return inner
