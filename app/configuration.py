@@ -1,6 +1,7 @@
 import os
 from dataclasses import dataclass
 import yaml
+from app.memory_order import MemoryOrder
 
 
 from app.exceptions import ConfigurationFileNotFoundError
@@ -15,7 +16,7 @@ class Coil:
 @dataclass
 class HoldingRegister:
     name: str
-    byte_order: str
+    memory_order: MemoryOrder
     data_type: str
     scale: float
     address: list[int]
@@ -52,7 +53,8 @@ class Configuration:
         if not os.path.exists(path):
             raise ConfigurationFileNotFoundError(path)
         yaml_data = path_to_yaml_data(path)
-        coils, holding_registers = _coils_data_from_yaml_data(yaml_data)
+        coils = _coils_data_from_yaml_data(yaml_data)
+        holding_registers = _holding_register_from_yaml_data(yaml_data)
         mqtt_settings = _mqtt_settings_from_yaml_data(yaml_data)
         modbus_settings = _modbus_settings_from_yaml_data(yaml_data)
         return cls(coils, holding_registers, mqtt_settings, modbus_settings)
@@ -98,15 +100,23 @@ def _coils_data_from_yaml_data(data):
     coils = [
         Coil(coil["name"], coil["address"]) for coil in modbus_mapping.get("coils", [])
     ]
-    holding_registers = [
-        HoldingRegister(
+
+    return coils
+
+
+def _holding_register_from_yaml_data(data):
+    modbus_mapping = data.get("modbus_mapping", {})
+
+    holding_registers = []
+    for register in modbus_mapping.get("holding_registers", []):
+        memory_order = MemoryOrder(register["byte_order"])
+        register = HoldingRegister(
             register["name"],
-            register["byte_order"],
+            memory_order,
             register["data_type"],
             register["scale"],
             register["address"],
         )
-        for register in modbus_mapping.get("holding_registers", [])
-    ]
+        holding_registers.append(register)
 
-    return coils, holding_registers
+    return holding_registers

@@ -1,4 +1,6 @@
 import logging
+from json import JSONDecodeError
+from typing import Callable
 
 import paho.mqtt.client as mqtt
 
@@ -21,8 +23,11 @@ class MqttClient:
         for topic in topics:
             self.topics.append(topic)
 
-    def add_message_callback(self, f):
+    def add_message_callback(self, f: Callable[[str], None]):
         self.on_message_callbacks.append(f)
+
+    def stop(self) -> None:
+        self._client.disconnect()
 
     def run(self) -> None:
         """
@@ -38,6 +43,7 @@ class MqttClient:
                 f"Cannot assign requested address: {self.host}:{self.port}"
             ) from e
 
+        logging.info("Service started")
         self._client.loop_forever()
 
     def _on_connect(self):
@@ -45,6 +51,7 @@ class MqttClient:
             if rc == 0:
                 logging.info("Connected to MQTT broker")
                 for topic in self.topics:
+                    logging.info("Subscribing to topic: %s", topic)
                     client.subscribe(topic)
             else:
                 logging.error("Connection failed")
@@ -53,8 +60,12 @@ class MqttClient:
 
     def _on_message(self):
         def inner(_client, _userdata, message):
-            msg = _decode_message(message)
-            for callback in self.on_message_callbacks:
-                callback(msg)
+            try:
+                msg = _decode_message(message)
+                logging.debug("Received message: %s", msg)
+                for callback in self.on_message_callbacks:
+                    callback(msg)
+            except JSONDecodeError:
+                logging.error("Error on decoding message: %s", msg)
 
         return inner

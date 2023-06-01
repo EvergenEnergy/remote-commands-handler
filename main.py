@@ -3,6 +3,8 @@ import os
 import json
 
 import argparse
+import signal
+import sys
 
 import paho.mqtt.client as mqtt
 from pymodbus.client import ModbusTcpClient
@@ -96,7 +98,12 @@ def setup_mqtt_client(configuration: Configuration) -> MqttClient:
 
 def main():
     loglevel = os.getenv("LOGLEVEL", "INFO").upper()
-    logging.basicConfig(level=getattr(logging, loglevel))
+    logging.basicConfig(
+        level=getattr(logging, loglevel),
+        format="%(asctime)s:%(levelname)s:%(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    logging.info("Starting service")
     args = handle_args()
 
     configuration = get_configuration_with_overrides(args)
@@ -106,11 +113,32 @@ def main():
 
     mqtt_client.subscribe_topics([configuration.mqtt_settings.command_topic])
 
-    def write_to_modbus(marshalled_message):
-        message = json.loads(marshalled_message)
-        modbus_client.write_coil(message["action"], message["value"])
+    def write_to_coil(marshalled_message):
+        try:
+            message = json.loads(marshalled_message)
+            modbus_client.write_coil(message["action"], message["value"])
+        except Exception as e:
+            logging.error(f"Error writing to coil: {e}")
+            return
 
-    mqtt_client.add_message_callback(write_to_modbus)
+    def write_to_holding_register(marshalled_message):
+        try:
+            message = json.loads(marshalled_message)
+            modbus_client.write_register(message["action"], message["value"])
+        except Exception as e:
+            logging.error(f"Error writing to holding register: {e}")
+            return
+
+    mqtt_client.add_message_callback(write_to_coil)
+    mqtt_client.add_message_callback(write_to_holding_register)
+
+    def signal_handler(signum, _):
+        logging.info(f"Received signal {signum}, shutting down...")
+        mqtt_client.stop()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
     mqtt_client.run()
 
