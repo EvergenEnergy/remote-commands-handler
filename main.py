@@ -13,19 +13,38 @@ from app.configuration import Configuration, ModbusSettings, MqttSettings
 
 def handle_args():
     # Create the argument parser
-    parser = argparse.ArgumentParser(description='remote commands handler',
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description="remote commands handler",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     # Add the optional arguments
-    parser.add_argument('--configuration_path',
-                        help='Path to the configuration file. By default, this is "config/configuration.yaml".',
-                        default='config/configuration.yaml')
-    parser.add_argument('--modbus_port', type=int,
-                        help='The port number for the Modbus server. Expected to be an integer.')
-    parser.add_argument('--modbus_host', help='The host address for the Modbus server. Expected to be a string.')
-    parser.add_argument('--mqtt_port', type=int, help='The port number for the MQTT server. Expected to be an integer.')
-    parser.add_argument('--mqtt_host', help='The host address for the MQTT server. Expected to be a string.')
-    parser.add_argument('--mqtt_topic', help='The MQTT topic to subscribe to. Expected to be a string.')
+    parser.add_argument(
+        "--configuration_path",
+        help='Path to the configuration file. By default, this is "config/configuration.yaml".',
+        default="config/configuration.yaml",
+    )
+    parser.add_argument(
+        "--modbus_port",
+        type=int,
+        help="The port number for the Modbus server. Expected to be an integer.",
+    )
+    parser.add_argument(
+        "--modbus_host",
+        help="The host address for the Modbus server. Expected to be a string.",
+    )
+    parser.add_argument(
+        "--mqtt_port",
+        type=int,
+        help="The port number for the MQTT server. Expected to be an integer.",
+    )
+    parser.add_argument(
+        "--mqtt_host",
+        help="The host address for the MQTT server. Expected to be a string.",
+    )
+    parser.add_argument(
+        "--mqtt_topic", help="The MQTT topic to subscribe to. Expected to be a string."
+    )
 
     return parser.parse_args()
 
@@ -57,15 +76,21 @@ def get_configuration_with_overrides(args):
 
 
 def setup_modbus_client(configuration: Configuration) -> ModbusClient:
-    return ModbusClient(configuration, ModbusTcpClient(
-        configuration.get_modbus_settings().host,
-        port=configuration.get_modbus_settings().port))
+    return ModbusClient(
+        configuration,
+        ModbusTcpClient(
+            configuration.get_modbus_settings().host,
+            port=configuration.get_modbus_settings().port,
+        ),
+    )
 
 
 def setup_mqtt_client(configuration: Configuration) -> MqttClient:
-    return MqttClient(configuration.get_mqtt_settings().port,
-                      configuration.get_mqtt_settings().host,
-                      mqtt.Client())
+    return MqttClient(
+        configuration.get_mqtt_settings().port,
+        configuration.get_mqtt_settings().host,
+        mqtt.Client(),
+    )
 
 
 def main():
@@ -87,5 +112,5 @@ def main():
     mqtt_client.run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

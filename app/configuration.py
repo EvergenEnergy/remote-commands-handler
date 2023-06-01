@@ -35,13 +35,12 @@ class ModbusSettings:
 
 
 class Configuration:
-
     def __init__(
-            self,
-            coils: list[Coil],
-            holding_registers: list[HoldingRegister],
-            mqtt_settings: MqttSettings,
-            modbus_settings: ModbusSettings,
+        self,
+        coils: list[Coil],
+        holding_registers: list[HoldingRegister],
+        mqtt_settings: MqttSettings,
+        modbus_settings: ModbusSettings,
     ):
         self.coils_map = {x.name: x for x in coils}
         self.holding_register_map = {x.name: x for x in holding_registers}
@@ -89,15 +88,24 @@ def _modbus_settings_from_yaml_data(data) -> ModbusSettings:
 
 def _mqtt_settings_from_yaml_data(data) -> MqttSettings:
     mqtt_settings = data["mqtt_settings"]
-    return MqttSettings(mqtt_settings["host"], mqtt_settings["port"], mqtt_settings["command_topic"])
+    return MqttSettings(
+        mqtt_settings["host"], mqtt_settings["port"], mqtt_settings["command_topic"]
+    )
 
 
 def _coils_data_from_yaml_data(data):
     modbus_mapping = data.get("modbus_mapping", {})
-    coils = [Coil(coil["name"], coil["address"]) for coil in modbus_mapping.get("coils", [])]
+    coils = [
+        Coil(coil["name"], coil["address"]) for coil in modbus_mapping.get("coils", [])
+    ]
     holding_registers = [
-        HoldingRegister(register["name"], register["byte_order"], register["data_type"], register["scale"],
-                        register["address"])
+        HoldingRegister(
+            register["name"],
+            register["byte_order"],
+            register["data_type"],
+            register["scale"],
+            register["address"],
+        )
         for register in modbus_mapping.get("holding_registers", [])
     ]
 

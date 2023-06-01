@@ -23,6 +23,9 @@ jobs:
       - name: Lint with pylint
         run: |
           poetry run pylint -E --rcfile=./.pylintrc app/ main.py
+      - name: Check code formatting with Black
+        run: |
+          poetry run black --check .
       - name: Test with pytest
         run: |
           poetry run pytest

@@ -7,7 +7,9 @@ from app.mqtt_client import MqttClient
 class TestMqttClient(unittest.TestCase):
     def setUp(self):
         self.mock_mqtt_client = MagicMock(spec=mqtt.Client)
-        self.mqtt_client = MqttClient(port=1883, host='localhost', client=self.mock_mqtt_client)
+        self.mqtt_client = MqttClient(
+            port=1883, host="localhost", client=self.mock_mqtt_client
+        )
 
     def test_run(self):
         # Assume connect method always successful
@@ -17,8 +19,8 @@ class TestMqttClient(unittest.TestCase):
         self.mqtt_client.run()
 
         # Verify that connect was called with the correct parameters
-        self.mock_mqtt_client.connect.assert_called_with('localhost', 1883)
+        self.mock_mqtt_client.connect.assert_called_with("localhost", 1883)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
