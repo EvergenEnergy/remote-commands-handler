@@ -1,3 +1,5 @@
+import logging
+
 import paho.mqtt.client as mqtt
 
 
@@ -41,11 +43,11 @@ class MqttClient:
     def _on_connect(self):
         def inner(client, _userdata, _flags, rc):
             if rc == 0:
-                print("Connected to MQTT broker")
+                logging.info("Connected to MQTT broker")
                 for topic in self.topics:
                     client.subscribe(topic)
             else:
-                print("Connection failed")
+                logging.error("Connection failed")
 
         return inner
 

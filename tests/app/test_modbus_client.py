@@ -97,7 +97,6 @@ class TestModbusClient(unittest.TestCase):
         read, write = Pipe(duplex=False)
 
         def test(_message):
-            print(_message)
             write.send(True)
 
         thread, port = self.start_local_tcp_client(test)
