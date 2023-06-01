@@ -1,3 +1,4 @@
+import logging
 import os
 import json
 
@@ -69,6 +70,8 @@ def setup_mqtt_client(configuration: Configuration) -> MqttClient:
 
 
 def main():
+    loglevel = os.getenv("LOGLEVEL", "INFO").upper()
+    logging.basicConfig(level=getattr(logging, loglevel))
     args = handle_args()
 
     configuration = get_configuration_with_overrides(args)
