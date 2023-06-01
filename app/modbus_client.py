@@ -5,7 +5,9 @@ from app.configuration import Configuration
 class ModbusClient:
     _client: ModbusTcpClient
 
-    def __init__(self, configuration: Configuration, modbus_client: ModbusTcpClient) -> None:
+    def __init__(
+        self, configuration: Configuration, modbus_client: ModbusTcpClient
+    ) -> None:
         self.configuration = configuration
         self._client = modbus_client
 

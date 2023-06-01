@@ -32,7 +32,9 @@ class MqttClient:
         try:
             self._client.connect(self.host, self.port)
         except OSError as e:
-            raise OSError(f"Cannot assign requested address: {self.host}:{self.port}") from e
+            raise OSError(
+                f"Cannot assign requested address: {self.host}:{self.port}"
+            ) from e
 
         self._client.loop_forever()
 

@@ -10,10 +10,12 @@ packages = [{include = "main.py"}]
 python = "^3.11"
 pymodbus = "^3.2.2"
 paho-mqtt = "^1.6.1"
-pylint = "^2.17.4"
-pytest = "^7.3.1"
 pyyaml = "^6.0"
 
+[tool.poetry.group.dev.dependencies]
+black = "^23.3.0"
+pylint = "^2.17.4"
+pytest = "^7.3.1"
 
 [build-system]
 requires = ["poetry-core"]
