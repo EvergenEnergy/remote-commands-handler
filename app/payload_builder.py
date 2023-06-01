@@ -51,6 +51,6 @@ class PayloadBuilder:
             case "STRING":
                 res.add_string(self.value)
             case _:
-                res.add_bits(self.value)
+                raise RuntimeError(f"unknown data type {self.data_type}")
         
         return res.to_registers()
