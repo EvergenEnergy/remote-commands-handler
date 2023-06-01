@@ -4,6 +4,7 @@ import threading
 from multiprocessing import Pipe
 
 from pymodbus.client import ModbusTcpClient
+from app.memory_order import MemoryOrder
 
 from app.modbus_client import ModbusClient
 from app.configuration import (
@@ -20,7 +21,10 @@ class TestModbusClient(unittest.TestCase):
         # This method will be called before every test
         self.coils = [Coil("test_coil", [1])]
         self.holding_registers = [
-            HoldingRegister("test_register", "AB", "INT16", 1.0, [1])
+            HoldingRegister("test_register", MemoryOrder("AB"), "INT16", 1.0, [1]),
+            HoldingRegister(
+                "float_register", MemoryOrder("BA"), "FLOAT32-IEEE", 1.0, [1]
+            ),
         ]
         self.mqtt_settings = MqttSettings("test", 100, "test")
 
@@ -93,7 +97,7 @@ class TestModbusClient(unittest.TestCase):
         thread.join()
         self.assertTrue(sent)
 
-    def test_write_holding_registers(self):
+    def test_write_int_to_holding_registers(self):
         read, write = Pipe(duplex=False)
 
         def test(_message):
@@ -106,6 +110,24 @@ class TestModbusClient(unittest.TestCase):
         )
         client = ModbusClient(configuration, ModbusTcpClient("localhost", port=port))
         client.write_register("test_register", 10)
+        sent = read.recv()
+        thread.join()
+        self.assertTrue(sent)
+
+    def test_write_float_to_holding_registers(self):
+        read, write = Pipe(duplex=False)
+
+        def test(_message):
+            print(_message)
+            write.send(True)
+
+        thread, port = self.start_local_tcp_client(test)
+        modbus_settings = ModbusSettings("localhost", port)
+        configuration = Configuration(
+            [], self.holding_registers, self.mqtt_settings, modbus_settings
+        )
+        client = ModbusClient(configuration, ModbusTcpClient("localhost", port=port))
+        client.write_register("float_register", 32.3)
         sent = read.recv()
         thread.join()
         self.assertTrue(sent)

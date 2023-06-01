@@ -1,7 +1,8 @@
 import logging
 
 from pymodbus.client import ModbusTcpClient
-from app.configuration import Configuration
+from app.configuration import Configuration, HoldingRegister
+from app.payload_builder import PayloadBuilder
 
 
 class ModbusClient:
@@ -39,10 +40,19 @@ class ModbusClient:
                 name
             )
             self._client.connect()
-            self._client.write_register(
-                holding_register_configuration.address[0], value, 1
+            payload = _build_register_payload(holding_register_configuration, value)
+            self._client.write_registers(
+                holding_register_configuration.address[0], payload, 1
             )
             self._client.close()
             logging.debug("wrote to register %s, value: %s", name, value)
         except KeyError:
             logging.error("unknown action: %s", name)
+
+
+def _build_register_payload(holding_register: HoldingRegister, value):
+    payload_builder = PayloadBuilder()
+    payload_builder.set_data_type(holding_register.data_type)
+    payload_builder.set_value(value)
+    payload_builder.set_memory_order(holding_register.memory_order)
+    return payload_builder.build()
