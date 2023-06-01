@@ -41,7 +41,9 @@ class ModbusClient:
             )
             self._client.connect()
             payload = _build_register_payload(holding_register_configuration, value)
-            self._client.write_registers(holding_register_configuration.address[0], payload, 1)
+            self._client.write_registers(
+                holding_register_configuration.address[0], payload, 1
+            )
             self._client.close()
             logging.debug("wrote to register %s, value: %s", name, value)
         except KeyError:

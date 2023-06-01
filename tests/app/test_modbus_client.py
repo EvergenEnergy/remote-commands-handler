@@ -22,7 +22,9 @@ class TestModbusClient(unittest.TestCase):
         self.coils = [Coil("test_coil", [1])]
         self.holding_registers = [
             HoldingRegister("test_register", MemoryOrder("AB"), "INT16", 1.0, [1]),
-            HoldingRegister("float_register", MemoryOrder("BA"), "FLOAT32-IEEE", 1.0, [1]),
+            HoldingRegister(
+                "float_register", MemoryOrder("BA"), "FLOAT32-IEEE", 1.0, [1]
+            ),
         ]
         self.mqtt_settings = MqttSettings("test", 100, "test")
 
@@ -121,7 +123,9 @@ class TestModbusClient(unittest.TestCase):
 
         thread, port = self.start_local_tcp_client(test)
         modbus_settings = ModbusSettings("localhost", port)
-        configuration = Configuration([], self.holding_registers, self.mqtt_settings, modbus_settings)
+        configuration = Configuration(
+            [], self.holding_registers, self.mqtt_settings, modbus_settings
+        )
         client = ModbusClient(configuration, ModbusTcpClient("localhost", port=port))
         client.write_register("float_register", 32.3)
         sent = read.recv()

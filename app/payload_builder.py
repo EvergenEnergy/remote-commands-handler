@@ -24,7 +24,7 @@ class PayloadBuilder:
 
         byte_order, word_order = self.memory_order.order()
         res = BinaryPayloadBuilder(None, byte_order, word_order)
-        
+
         match self.data_type:
             case "FLOAT64-IEEE":
                 res.add_64bit_float(self.value)
@@ -52,5 +52,5 @@ class PayloadBuilder:
                 res.add_string(self.value)
             case _:
                 raise RuntimeError(f"unknown data type {self.data_type}")
-        
+
         return res.to_registers()
