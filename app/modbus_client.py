@@ -1,3 +1,5 @@
+import logging
+
 from pymodbus.client import ModbusTcpClient
 from app.configuration import Configuration
 
@@ -17,9 +19,9 @@ class ModbusClient:
             self._client.connect()
             self._client.write_coils(coil_configuration.address[0], value)
             self._client.close()
-            print("wrote to coils", name, " value: ", value)
+            logging.debug("wrote to coils: %s, values: %s", name, value)
         except KeyError:
-            print("unknown action: ", name)
+            logging.error("unknown action: %s", name)
 
     def write_coil(self, name: str, value: bool):
         try:
@@ -27,9 +29,9 @@ class ModbusClient:
             self._client.connect()
             self._client.write_coil(coil_configuration.address[0], value, 1)
             self._client.close()
-            print("wrote to coil", name, " value: ", value)
+            logging.debug("wrote to coil: %s, value: %s", name, value)
         except KeyError:
-            print("unknown action: ", name)
+            logging.error("unknown action: %s", name)
 
     def write_register(self, name: str, value):
         try:
@@ -41,6 +43,6 @@ class ModbusClient:
                 holding_register_configuration.address[0], value, 1
             )
             self._client.close()
-            print("wrote to register", name, " value: ", value)
+            logging.debug("wrote to register %s, value: %s", name, value)
         except KeyError:
-            print("unknown action: ", name)
+            logging.error("unknown action: %s", name)

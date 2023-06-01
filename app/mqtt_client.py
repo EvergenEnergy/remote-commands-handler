@@ -45,7 +45,7 @@ class MqttClient:
             if rc == 0:
                 logging.info("Connected to MQTT broker")
                 for topic in self.topics:
-                    print("subscribing to topic: ", topic)
+                    logging.info("subscribing to topic: %s", topic)
                     client.subscribe(topic)
             else:
                 logging.error("Connection failed")
@@ -56,10 +56,10 @@ class MqttClient:
         def inner(_client, _userdata, message):
             try:
                 msg = _decode_message(message)
-                print("received message: ", msg)
+                logging.debug("received message: %s", msg)
                 for callback in self.on_message_callbacks:
                     callback(msg)
             except JSONDecodeError:
-                print("error on decoding message: ", msg)
+                logging.error("error on decoding message: %s", msg)
 
         return inner
