@@ -5,7 +5,7 @@ mqtt_settings:
 
 modbus_settings:
   host: "localhost"
-  port: 59042
+  port: 502
 
 modbus_mapping:
   ## name        - the variable name
