@@ -1,5 +1,7 @@
 import logging
 from json import JSONDecodeError
+from typing import Callable
+
 import paho.mqtt.client as mqtt
 
 
@@ -21,8 +23,11 @@ class MqttClient:
         for topic in topics:
             self.topics.append(topic)
 
-    def add_message_callback(self, f):
+    def add_message_callback(self, f: Callable[[str], None]):
         self.on_message_callbacks.append(f)
+
+    def stop(self) -> None:
+        self._client.disconnect()
 
     def run(self) -> None:
         """
