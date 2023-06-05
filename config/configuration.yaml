@@ -4,7 +4,7 @@ mqtt_settings:
   command_topic: "commands/#"  # The mqtt topic that contains the relevant commands.
 
 modbus_settings:
-  host: pymodbus-pymodbus
+  host: pymodbus
   port: 5020
 
 modbus_mapping:
@@ -39,12 +39,42 @@ modbus_mapping:
       scale: 1.0  # Fill this in
       address: [2]  # Fill this in with actual Modbus register address for evgBatteryTargetSOCPercent
 
+    - name: "testRegister"
+      byte_order: "AB" # Fill this in
+      data_type: "INT16" # Fill this in
+      scale: 1.0 # Fill this in
+      address: [1] # Fill this in with actual Modbus register address for evgBatteryTargetPowerWatts
+    
+    - name: "testFloatRegister"
+      byte_order: "AB" # Fill this in
+      data_type: "FLOAT32-IEEE" # Fill this in
+      scale: 1.0 # Fill this in
+      address: [2] # Fill this in with actual Modbus register address for evgBatteryTargetPowerWatts
+
+    - name: "testFloat64Register"
+      byte_order: "AB" # Fill this in
+      data_type: "FLOAT64-IEEE" # Fill this in
+      scale: 1.0 # Fill this in
+      address: [3] # Fill this in with actual Modbus register address for evgBatteryTargetPowerWatts
+
+    - name: "testInt64Register"
+      byte_order: "AB" # Fill this in
+      data_type: "INT64" # Fill this in
+      scale: 1.0 # Fill this in
+      address: [20] # Fill this in with actual Modbus register address for evgBatteryTargetPowerWatts
+
+    - name: "testUInt64Register"
+      byte_order: "AB" # Fill this in
+      data_type: "UINT64" # Fill this in
+      scale: 1.0 # Fill this in
+      address: [30] # Fill this in with actual Modbus register address for evgBatteryTargetPowerWatts
+
   coils:
-    - name: "evgBatteryModeCoil"  # Assuming 'evgBatteryMode' is also represented as a coil
-      address: [3]  # Fill this in with actual Modbus register address for the coil
+    - name: "evgBatteryModeCoil" # Assuming 'evgBatteryMode' is also represented as a coil
+      address: [501] # Fill this in with actual Modbus register address for the coil
 
-    - name: "evgBatteryTargetPowerWattsCoil"  # Assuming 'evgBatteryTargetPowerWatts' is also represented as a coil
-      address: [4]  # Fill this in with actual Modbus register address for the coil
+    - name: "evgBatteryTargetPowerWattsCoil" # Assuming 'evgBatteryTargetPowerWatts' is also represented as a coil
+      address: [502] # Fill this in with actual Modbus register address for the coil
 
-    - name: "evgBatteryTargetSOCPercentCoil"  # Assuming 'evgBatteryTargetSOCPercent' is also represented as a coil
-      address: [5]  # Fill this in with actual Modbus register address for the coil
+    - name: "evgBatteryTargetSOCPercentCoil" # Assuming 'evgBatteryTargetSOCPercent' is also represented as a coil
+      address: [503] # Fill this in with actual Modbus register address for the coil

@@ -7,16 +7,16 @@ services:
     volumes:
       - ./tests/mosquitto/mosquitto.conf:/mqtt/config/mosquitto.conf
     ports:
-      - "1883"
-      - "9001"
+      - 1883:1883
+      - 9001:9001
     command: ["mosquitto", "-c", "/mqtt/config/mosquitto.conf"]
     restart: always
     logging:
       options:
         max-size: 10m
 
-  pymodbus-server:
-    container_name: pymodbus-server
+  pymodbus:
+    container_name: pymodbus
     image: ghcr.io/pymodbus-dev/pymodbus:v3.1.0
     command:
       - "pymodbus.server"
@@ -46,10 +46,10 @@ services:
       - "--modbus-config"
       - "/pymodbus/config.json"
     volumes:
-      - ./config.json:/pymodbus/config.json
+      - ./config/config.json:/pymodbus/config.json
     ports:
-      - "5020"
-      - "8080"
+      - 5020:5020
+      - 8080:8080
     restart: on-failure
     logging:
       options:
@@ -66,7 +66,7 @@ services:
       - ./config:/config
     links:
       - mosquitto
-      - pymodbus-server
+      - pymodbus
     depends_on:
       - mosquitto
-      - pymodbus-server
+      - pymodbus
