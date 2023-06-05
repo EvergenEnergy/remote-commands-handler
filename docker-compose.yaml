@@ -5,7 +5,7 @@ services:
     image: eclipse-mosquitto:2.0.14
     user: ${USER_ID}:${GROUP_ID}
     volumes:
-      - ./config/mosquitto.conf:/mqtt/config/mosquitto.conf
+      - ./tests/mosquitto/mosquitto.conf:/mqtt/config/mosquitto.conf
     ports:
       - "1883"
       - "9001"
