@@ -1,11 +1,11 @@
 mqtt_settings:
-  host: "localhost"
+  host: mosquitto
   port: 1883
   command_topic: "commands/#" # The mqtt topic that contains the relevant commands.
 
 modbus_settings:
-  host: "localhost"
-  port: 59042
+  host: pymodbus-pymodbus
+  port: 5020
 
 modbus_mapping:
   ## name        - the variable name
