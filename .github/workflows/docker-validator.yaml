@@ -30,7 +30,8 @@ jobs:
       - name: Install docker-compose-lint
         run: |
           wget -O /usr/local/bin/docker-compose-lint \
-            https://github.com/docker-compose-tools/docker-compose-lint/releases/latest/download/docker-compose-lint-Linux-x86_64
+            https://github.com/docker-compose-tools/docker-compose-lint/releases/latest/download/\
+            docker-compose-lint-Linux-x86_64
           chmod +x /usr/local/bin/docker-compose-lint
 
       - name: Run docker-compose-lint
