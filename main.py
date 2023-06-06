@@ -33,6 +33,7 @@ from pymodbus.client import ModbusTcpClient
 from app.modbus_client import ModbusClient
 from app.mqtt_client import MqttClient
 from app.configuration import Configuration, ModbusSettings, MqttSettings
+from app.exceptions import ConfigurationFileNotFoundError, ConfigurationFileInvalidError
 
 
 def handle_args():
@@ -127,7 +128,12 @@ def main():
     logging.info("Starting service")
     args = handle_args()
 
-    configuration = get_configuration_with_overrides(args)
+    try:
+        configuration = get_configuration_with_overrides(args)
+    except (ConfigurationFileNotFoundError, ConfigurationFileInvalidError) as ex:
+        logging.info(ex)
+        logging.error("Error retrieving configuration, exiting")
+        sys.exit(1)
 
     modbus_client = setup_modbus_client(configuration)
     mqtt_client = setup_mqtt_client(configuration)

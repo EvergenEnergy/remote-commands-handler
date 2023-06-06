@@ -1,0 +1,6 @@
+mqtt_settings:
+  host: "mqtt.host"
+  port: 9000
+  command_topic: "commands/#"
+
+- bad yaml
