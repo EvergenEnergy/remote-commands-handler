@@ -9,6 +9,7 @@ from pymodbus.client import ModbusTcpClient
 from pymodbus.payload import BinaryPayloadDecoder
 from pymodbus.constants import Endian
 
+@pytest.mark.end_to_end
 def test_able_to_update_coil():
     random_value = random.randint(1, 2) % 2 == 0
 
@@ -38,6 +39,7 @@ def test_able_to_update_coil():
     modbusClient.close()
     mqttClient.disconnect()
 
+@pytest.mark.end_to_end    
 def test_able_to_send_integer16():
     random_value = random.randint(0, 30)
     message_dictorionary = {
@@ -67,6 +69,7 @@ def test_able_to_send_integer16():
     modbusClient.close()
     mqttClient.disconnect()
 
+@pytest.mark.end_to_end
 def test_able_to_send_float32():
     random_value = random.uniform(0, 30)
     message_dictionary = {
@@ -97,6 +100,7 @@ def test_able_to_send_float32():
     modbusClient.close()
     mqttClient.disconnect()
 
+@pytest.mark.end_to_end
 def test_able_to_send_command_with_float64():
     random_value = random.uniform(0, 30)
     message_dictionary = {
@@ -127,6 +131,7 @@ def test_able_to_send_command_with_float64():
     modbusClient.close()
     mqttClient.disconnect()
 
+@pytest.mark.end_to_end
 def test_able_to_send_integer64():
     random_value = random.randint(0, 100)
     message_dictorionary = {
@@ -158,6 +163,7 @@ def test_able_to_send_integer64():
     modbusClient.close()
     mqttClient.disconnect()
 
+@pytest.mark.end_to_end
 def test_able_to_send_uint64():
     random_value = random.randint(0, 100)
     message_dictorionary = {
