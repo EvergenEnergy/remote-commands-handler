@@ -79,7 +79,7 @@ class Configuration:
             yaml_data = path_to_yaml_data(path)
         except yaml.YAMLError as exc:
             msg = "Error parsing YAML file"
-            if hasattr(exc, 'problem_mark'):
+            if hasattr(exc, "problem_mark"):
                 msg = f"Error encountered parsing YAML {str(exc.problem_mark)}"
             raise ConfigurationFileInvalidError(msg)
 
@@ -146,31 +146,40 @@ def _holding_register_from_yaml_data(data):
             register["name"],
             memory_order,
             register["data_type"],
-            register.get("scale",1.0),
+            register.get("scale", 1.0),
             register["address"],
         )
         holding_registers.append(register)
 
     return holding_registers
 
+
 def _validate_config(config: dict):
-    required_settings = ('mqtt_settings', 'modbus_settings', 'modbus_mapping')
+    required_settings = ("mqtt_settings", "modbus_settings", "modbus_mapping")
     try:
         for req_key in required_settings:
-            assert req_key in config, f"No {req_key!r} section provided in configuration"
+            assert (
+                req_key in config
+            ), f"No {req_key!r} section provided in configuration"
 
-        mapping = config['modbus_mapping']
-        keys_defined = sum([len(mapping.get(k,[])) for k in ('holding_registers', 'coils')])
+        mapping = config["modbus_mapping"]
+        keys_defined = sum(
+            [len(mapping.get(k, [])) for k in ("holding_registers", "coils")]
+        )
         assert keys_defined > 0, "No keys defined in holding_registers or coils"
 
-        section_keys = ['name', 'address']
-        for index, ref in enumerate(mapping.get('coils', [])):
+        section_keys = ["name", "address"]
+        for index, ref in enumerate(mapping.get("coils", [])):
             for key in section_keys:
-                assert key in ref, f"Coil reference #{index} has no config setting for {key!r}"
+                assert (
+                    key in ref
+                ), f"Coil reference #{index} has no config setting for {key!r}"
 
-        section_keys.extend(['byte_order', 'data_type'])
-        for index, ref in enumerate(mapping.get('holding_registers', [])):
+        section_keys.extend(["byte_order", "data_type"])
+        for index, ref in enumerate(mapping.get("holding_registers", [])):
             for key in section_keys:
-                assert key in ref, f"Holding register reference #{index} has no config setting for {key!r}"
+                assert (
+                    key in ref
+                ), f"Holding register reference #{index} has no config setting for {key!r}"
     except AssertionError as ex:
         raise ConfigurationFileInvalidError(ex)

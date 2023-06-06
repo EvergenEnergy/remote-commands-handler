@@ -1,4 +1,3 @@
-
 class ConfigurationFileNotFoundError(Exception):
     """Exception raised when the configuration file is not found."""
 
@@ -6,6 +5,7 @@ class ConfigurationFileNotFoundError(Exception):
         self.path = path
         self.message = message + path
         super().__init__(self.message)
+
 
 class ConfigurationFileInvalidError(Exception):
     """Exception raised when the configuration file contains errors."""
