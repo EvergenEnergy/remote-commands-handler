@@ -43,8 +43,6 @@ services:
       - "0"
       - "--modbus-port"
       - "5020"
-      - "--random"
-      - "1"
       - "--modbus-config"
       - "/pymodbus/config.json"
     volumes:
