@@ -1,3 +1,6 @@
+"""Exception classes for configuration-related errors."""
+
+
 class ConfigurationFileNotFoundError(Exception):
     """Exception raised when the configuration file is not found."""
 
