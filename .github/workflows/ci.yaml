@@ -27,7 +27,7 @@ jobs:
           poetry run black --check .
       - name: Test with pytest
         run: |
-          poetry run coverage run -m pytest -m "not end_to_end"
+          poetry run  coverage run --source=main.py --source=app -m pytest -m "not end_to_end"
       - name: Report coverage with Coveralls
         run: |
           poetry run coveralls
