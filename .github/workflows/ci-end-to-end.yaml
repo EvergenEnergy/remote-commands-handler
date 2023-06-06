@@ -1,14 +1,13 @@
+---
 name: end-to-end
 on:
   push:
-
 jobs:
   ci:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11"]
-
+        python-version: ['3.11']
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
@@ -33,5 +32,3 @@ jobs:
       - name: Stop containers
         run: |
           docker-compose down
-
-
