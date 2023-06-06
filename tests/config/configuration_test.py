@@ -22,8 +22,12 @@ def test_throws_exception_when_configuration_file_not_found():
 
 
 def test_throws_exception_when_configuration_file_has_syntax_errors():
+    bad_yaml_path = "/tmp/bad.yaml"
+    with open(bad_yaml_path, 'w') as bad:
+        bad.write("not actually yaml")
     with pytest.raises(ConfigurationFileInvalidError):
-        Configuration.from_file("./tests/config/invalid_syntax_configuration.yaml")
+        Configuration.from_file(bad_yaml_path)
+    os.remove(bad_yaml_path)
 
 
 def test_get_coil():
