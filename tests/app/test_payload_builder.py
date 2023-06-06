@@ -150,6 +150,10 @@ def test_if_no_memory_order_been_set():
     with pytest.raises(AttributeError):
         builder.build()
 
+    builder.set_memory_order(None)
+    with pytest.raises(AttributeError):
+        builder.build()
+
 
 def test_if_no_data_type_has_been_set():
     builder = PayloadBuilder()
@@ -160,6 +164,10 @@ def test_if_no_data_type_has_been_set():
     with pytest.raises(AttributeError):
         builder.build()
 
+    builder.set_data_type(None)
+    with pytest.raises(AttributeError):
+        builder.build()
+
 
 def test_if_no_value_has_been_set():
     builder = PayloadBuilder()
@@ -167,6 +175,10 @@ def test_if_no_value_has_been_set():
     builder.set_memory_order(MemoryOrder("AB"))
     builder.set_data_type("FLOAT64-IEEE")
 
+    with pytest.raises(AttributeError):
+        builder.build()
+
+    builder.set_value(None)
     with pytest.raises(AttributeError):
         builder.build()
 
