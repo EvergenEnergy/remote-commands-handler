@@ -15,21 +15,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Install Hadolint
-      run: |
-        wget -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
-        chmod +x /usr/local/bin/hadolint
+      - name: Install Hadolint
+        run: |
+          wget -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
+          chmod +x /usr/local/bin/hadolint
 
-    - name: Run Hadolint
-      run: hadolint --ignore DL3008 **/Dockerfile
+      - name: Run Hadolint
+        run: hadolint --ignore DL3008 **/Dockerfile
 
-    - name: Install docker-compose-lint
-      run: |
-        wget -O /usr/local/bin/docker-compose-lint https://github.com/docker-compose-tools/docker-compose-lint/releases/latest/download/docker-compose-lint-Linux-x86_64
-        chmod +x /usr/local/bin/docker-compose-lint
+      - name: Install docker-compose-lint
+        run: |
+          wget -O /usr/local/bin/docker-compose-lint https://github.com/docker-compose-tools/docker-compose-lint/releases/latest/download/docker-compose-lint-Linux-x86_64
+          chmod +x /usr/local/bin/docker-compose-lint
 
-    - name: Run docker-compose-lint
-      run: docker-compose-lint **/docker-compose.yml
+      - name: Run docker-compose-lint
+        run: docker-compose-lint **/docker-compose.yml
