@@ -1,3 +1,5 @@
+"""Unit tests for the ModbusClient class in the app.modbus_client module."""
+
 import unittest
 import socket
 import threading

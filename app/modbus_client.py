@@ -1,3 +1,27 @@
+"""Modbus Client module.
+
+This module provides a client class for interacting with Modbus devices using the Modbus TCP protocol.
+The `ModbusClient` class encapsulates the functionality of the Modbus client, including the ability
+to write coils and registers.
+
+Example:
+    Instantiate a `ModbusClient` object with a configuration and a Modbus TCP client:
+
+    ```
+    configuration = Configuration(...)
+    modbus_client = ModbusTcpClient(...)
+    client = ModbusClient(configuration, modbus_client)
+
+    client.write_coil("coil_name", True)
+    client.write_coils("coil_name", [True, False, True])
+    client.write_register("register_name", 123)
+    ```
+
+Note:
+    This module requires the `pymodbus` package to be installed.
+
+"""
+
 import logging
 
 from pymodbus.client import ModbusTcpClient

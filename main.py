@@ -1,3 +1,24 @@
+"""Remote Commands Handler.
+
+This module provides a remote commands handler that listens to MQTT messages and writes
+the received data to Modbus coils and holding registers based on the specified configuration.
+
+The remote commands handler connects to an MQTT broker and a Modbus server, and subscribes
+to a specific MQTT topic for receiving commands. It retrieves the configuration from a YAML
+file and allows overriding certain configuration parameters through command-line arguments.
+
+Example:
+    Run the remote commands handler:
+
+    ```
+    python remote_commands_handler.py --configuration_path config/configuration.yaml
+    ```
+
+Note:
+    This module requires the `paho-mqtt` and `pymodbus` packages to be installed.
+
+"""
+
 import logging
 import os
 import json
