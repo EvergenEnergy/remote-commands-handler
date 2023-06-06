@@ -14,7 +14,7 @@ from pymodbus.constants import Endian
 def test_able_to_update_coil():
     random_value = random.randint(1, 2) % 2 == 0
 
-    message_dictionary = {"action": "testRegister", "value": random_value}
+    message_dictionary = {"action": "testCoil", "value": random_value}
     message = json.dumps(message_dictionary)
 
     mqttClient = mqtt.Client()
@@ -28,7 +28,7 @@ def test_able_to_update_coil():
 
     mqttClient.publish("commands/test", message)
 
-    time.sleep(5)
+    time.sleep(1)
 
     value = modbusClient.read_coils(504, 1, 1)
 
