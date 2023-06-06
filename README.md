@@ -2,6 +2,8 @@
 
 Remote Commands Handler is a Python application that handles remote commands via MQTT and Modbus protocols. The application listens to commands from an MQTT broker and sends corresponding commands to a Modbus server.
 
+[![Coverage Status](https://coveralls.io/repos/github/EvergenEnergy/remote-comands-handler/badge.svg?branch=coveralls)](https://coveralls.io/github/EvergenEnergy/remote-comands-handler?branch=coveralls)
+
 ## Features
 
 - Listen to an MQTT broker for command messages.
