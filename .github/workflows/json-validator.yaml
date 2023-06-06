@@ -23,7 +23,7 @@ jobs:
         run: |
           for file in $(find . -type f -name '*.json' | grep -v -e '/venv/' -e '/.venv/'); do
             jq . "$file" >/dev/null || { echo "Invalid JSON: $file"; exit 1; }
-            if [[ $(tail -c1 "$file" | wc -l) -eq 0 ]]
+            if [[ $(tail -c1 "$file" | wc -l) -eq 0 ]]; then
               echo "Missing empty EOL: $file"
               exit 1
             fi
