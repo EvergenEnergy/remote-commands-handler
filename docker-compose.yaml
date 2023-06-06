@@ -46,7 +46,7 @@ services:
       - "--modbus-config"
       - "/pymodbus/config.json"
     volumes:
-      - ./config/config.json:/pymodbus/config.json
+      - ./tests/modbus/config.json:/pymodbus/config.json
     ports:
       - 5020:5020
       - 8080:8080
@@ -63,7 +63,7 @@ services:
     environment:
       - CONFIGURATION_PATH=/config/configuration.yaml
     volumes:
-      - ./config:/config
+      - ./tests/end-to-end/configuration.yaml:/config/configuration.yaml
     links:
       - mosquitto
       - pymodbus
