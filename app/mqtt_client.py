@@ -1,3 +1,25 @@
+"""MQTT Client module.
+
+This module provides a client class for interacting with MQTT brokers. It allows subscribing to topics,
+adding message callbacks, and running the client to establish and maintain a connection to the broker.
+
+The main class in this module is `MqttClient`, which encapsulates the functionality of the MQTT client.
+
+Example:
+    Instantiate an `MqttClient` object and run it:
+
+    ```
+    client = MqttClient(port=1883, host="localhost", client=mqtt.Client())
+    client.subscribe_topics(["topic1", "topic2"])
+    client.add_message_callback(my_callback_function)
+    client.run()
+    ```
+
+Note:
+    This module requires the `paho-mqtt` package to be installed.
+
+"""
+
 import logging
 from json import JSONDecodeError
 from typing import Callable
@@ -30,8 +52,9 @@ class MqttClient:
         self._client.disconnect()
 
     def run(self) -> None:
-        """
-        this is a blocking operation.
+        """Run the MQTT client.
+
+        This method blocks the execution and keeps the client connected to the MQTT broker.
         """
         self._client.on_connect = self._on_connect()
         self._client.on_message = self._on_message()

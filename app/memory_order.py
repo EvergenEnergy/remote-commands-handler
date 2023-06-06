@@ -19,7 +19,7 @@ class MemoryOrder:
         if order_string is None:
             return (byte_order, word_order)
 
-        match order_string:
+        match order_string:  # noqa
             case "AB":
                 word_order = Endian.Big
                 byte_order = Endian.Big

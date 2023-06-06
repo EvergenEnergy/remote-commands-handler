@@ -1,3 +1,25 @@
+"""Configuration Module.
+
+This module provides classes and functions for managing configuration data in the application.
+It defines data classes for coils, holding registers, MQTT settings, and Modbus settings.
+The `Configuration` class represents the overall configuration, which can be loaded from a YAML file.
+
+Example:
+    Load a configuration from a YAML file:
+
+    ```
+    configuration = Configuration.from_file("config.yaml")
+    coil = configuration.get_coil("coil_name")
+    holding_registers = configuration.get_holding_registers()
+    mqtt_settings = configuration.get_mqtt_settings()
+    modbus_settings = configuration.get_modbus_settings()
+    ```
+
+Note:
+    This module requires the `pyyaml` package to be installed.
+
+"""
+
 import os
 from dataclasses import dataclass
 import yaml

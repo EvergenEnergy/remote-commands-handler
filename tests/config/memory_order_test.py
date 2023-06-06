@@ -1,3 +1,5 @@
+"""Tests for the MemoryOrder class."""
+
 from pymodbus.constants import Endian
 
 from app.memory_order import MemoryOrder

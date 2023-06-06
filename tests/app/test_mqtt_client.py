@@ -1,3 +1,5 @@
+"""Unit tests for the MqttClient class in the app.mqtt_client module."""
+
 import unittest
 from unittest.mock import MagicMock
 import paho.mqtt.client as mqtt

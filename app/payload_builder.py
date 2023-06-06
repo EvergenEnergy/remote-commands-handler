@@ -25,7 +25,7 @@ class PayloadBuilder:
         byte_order, word_order = self.memory_order.order()
         res = BinaryPayloadBuilder(None, byte_order, word_order)
 
-        match self.data_type:
+        match self.data_type:  # noqa
             case "FLOAT64-IEEE":
                 res.add_64bit_float(self.value)
             case "FLOAT32-IEEE" | "FLOAT32":

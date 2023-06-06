@@ -1,4 +1,4 @@
-""" ignore """
+"""Tests for the Configuration module."""
 import os
 
 import pytest
