@@ -21,10 +21,9 @@ jobs:
 
       - name: Validate JSON
         run: |
-          for file in $(find . -type f -name '*.json'); do
+          for file in $(find . -type f -name '*.json' | grep -v -e '/venv/' -e '/.venv/'); do
             jq . "$file" >/dev/null || { echo "Invalid JSON: $file"; exit 1; }
-            last_char=$(tail -c 1 "$file")
-            if [ "$last_char" != $'\n' ]; then
+            if [[ $(tail -c1 "$file" | wc -l) -eq 0 ]]
               echo "Missing empty EOL: $file"
               exit 1
             fi
