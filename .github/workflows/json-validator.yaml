@@ -1,0 +1,31 @@
+name: Validate JSON Files
+
+on:
+  push:
+    paths:
+      - '**/*.json'
+  pull_request:
+    paths:
+      - '**/*.json'
+
+jobs:
+  validate-json:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install jq
+        run: sudo apt-get install jq
+
+      - name: Validate JSON
+        run: |
+          for file in $(find . -type f -name '*.json'); do
+            jq . "$file" >/dev/null || { echo "Invalid JSON: $file"; exit 1; }
+            last_char=$(tail -c 1 "$file")
+            if [ "$last_char" != $'\n' ]; then
+              echo "Missing empty EOL: $file"
+              exit 1
+            fi
+          done
