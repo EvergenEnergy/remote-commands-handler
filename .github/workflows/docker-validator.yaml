@@ -20,7 +20,8 @@ jobs:
 
       - name: Install Hadolint
         run: |
-          wget -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
+          wget -O /usr/local/bin/hadolint \
+            https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
           chmod +x /usr/local/bin/hadolint
 
       - name: Run Hadolint
@@ -28,7 +29,8 @@ jobs:
 
       - name: Install docker-compose-lint
         run: |
-          wget -O /usr/local/bin/docker-compose-lint https://github.com/docker-compose-tools/docker-compose-lint/releases/latest/download/docker-compose-lint-Linux-x86_64
+          wget -O /usr/local/bin/docker-compose-lint \
+            https://github.com/docker-compose-tools/docker-compose-lint/releases/latest/download/docker-compose-lint-Linux-x86_64
           chmod +x /usr/local/bin/docker-compose-lint
 
       - name: Run docker-compose-lint

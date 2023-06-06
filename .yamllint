@@ -6,9 +6,3 @@ rules:
     level: warning
   document-start: disable
   truthy: disable
-
-ignore: |
-  r-compose.yaml
-  /r-compose.yaml
-  /compose.yaml
-  *compose.yaml
