@@ -18,7 +18,35 @@ services:
   pymodbus-server:
     container_name: pymodbus-server
     image: ghcr.io/pymodbus-dev/pymodbus:v3.1.0
-    command: ["pymodbus.server", "--host", "0.0.0.0", "--web-port", "8080", "--verbose",  "--no-repl", "run", "--modbus-server", "tcp", "--framer", "socket", "--unit-id", "1", "--unit-id", "2", "--unit-id", "3", "--unit-id", "4", "--random", "0", "--modbus-port", "5020", "--random", "1", "--modbus-config", "/pymodbus/config.json"]
+    command:
+      - "pymodbus.server"
+      - "--host"
+      - "0.0.0.0"
+      - "--web-port"
+      - "8080"
+      - "--verbose"
+      - "--no-repl"
+      - "run"
+      - "--modbus-server"
+      - "tcp"
+      - "--framer"
+      - "socket"
+      - "--unit-id"
+      - "1"
+      - "--unit-id"
+      - "2"
+      - "--unit-id"
+      - "3"
+      - "--unit-id"
+      - "4"
+      - "--random"
+      - "0"
+      - "--modbus-port"
+      - "5020"
+      - "--random"
+      - "1"
+      - "--modbus-config"
+      - "/pymodbus/config.json"
     volumes:
       - ./config.json:/pymodbus/config.json
     ports:
