@@ -2,9 +2,9 @@
 name: Dockerfile and docker-compose Validation
 on:
   push:
-    paths: ['**/Dockerfile', '**/docker-compose.yml']
+    paths: ['Dockerfile', 'docker-compose.yml']
   pull_request:
-    paths: ['**/Dockerfile', '**/docker-compose.yml']
+    paths: ['Dockerfile', 'docker-compose.yml']
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -17,12 +17,8 @@ jobs:
             https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
           chmod +x /usr/local/bin/hadolint
       - name: Run Hadolint
-        run: hadolint --ignore DL3008 **/Dockerfile
-      - name: Install docker-compose-lint
-        run: |
-          wget -O /usr/local/bin/docker-compose-lint \
-            https://github.com/docker-compose-tools/docker-compose-lint/releases/latest/download/\
-            docker-compose-lint-Linux-x86_64
-          chmod +x /usr/local/bin/docker-compose-lint
-      - name: Run docker-compose-lint
-        run: docker-compose-lint **/docker-compose.yml
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: "Dockerfile"
+      - name: Check Docker Compose Config
+        run: docker compose -f docker-compose.yaml config -q
