@@ -13,12 +13,6 @@ class MemoryOrder:
         return self._order
 
     def _str_to_endian(self, order_string: str):
-        word_order = Endian.Big
-        byte_order = Endian.Big
-
-        if order_string is None:
-            return (byte_order, word_order)
-
         match order_string:  # noqa
             case "AB":
                 word_order = Endian.Big
@@ -32,5 +26,8 @@ class MemoryOrder:
             case "BADC":
                 word_order = Endian.Big
                 byte_order = Endian.Little
+            case _:
+                word_order = Endian.Big
+                byte_order = Endian.Big
 
         return (byte_order, word_order)

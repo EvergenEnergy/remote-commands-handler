@@ -48,3 +48,12 @@ def test_get_BADC():
 
     assert word_order == Endian.Big
     assert byte_order == Endian.Little
+
+
+def test_get_default_order():
+    order = MemoryOrder("")
+
+    byte_order, word_order = order.order()
+
+    assert word_order == Endian.Big
+    assert byte_order == Endian.Big

@@ -24,9 +24,10 @@ def test_throws_exception_when_configuration_file_not_found():
 def test_throws_exception_when_configuration_file_has_syntax_errors():
     bad_yaml_path = "/tmp/bad.yaml"
     with open(bad_yaml_path, "w") as bad:
-        bad.write("not actually yaml")
-    with pytest.raises(ConfigurationFileInvalidError):
+        bad.write("not:\nvalid")
+    with pytest.raises(ConfigurationFileInvalidError) as ex:
         Configuration.from_file(bad_yaml_path)
+    assert "Error encountered parsing YAML" in str(ex.value)
     os.remove(bad_yaml_path)
 
 
@@ -120,11 +121,13 @@ def test_validate_config_data():
     for key in ("modbus_settings", "mqtt_settings", "modbus_mapping"):
         c = config.copy()
         del c[key]
-        with pytest.raises(ConfigurationFileInvalidError):
+        with pytest.raises(ConfigurationFileInvalidError) as ex:
             _validate_config(c)
+        assert key in str(ex.value)
 
     for datatype in ("coils", "holding_registers"):
         c = config.copy()
         del c["modbus_mapping"][datatype][0]["address"]
-        with pytest.raises(ConfigurationFileInvalidError):
+        with pytest.raises(ConfigurationFileInvalidError) as ex:
             _validate_config(c)
+        assert "address" in str(ex.value)
