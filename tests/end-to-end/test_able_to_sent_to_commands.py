@@ -28,8 +28,9 @@ def modbus_client():
 
 @pytest.mark.end_to_end
 @pytest.mark.parametrize("coil_value", [False, True])
-def test_able_to_update_coil(mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient, coil_value: bool):
-
+def test_able_to_update_coil(
+    mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient, coil_value: bool
+):
     message_dictionary = {"action": "testCoil", "value": coil_value}
     message = json.dumps(message_dictionary)
 
@@ -43,7 +44,9 @@ def test_able_to_update_coil(mqtt_client: mqtt.Client, modbus_client: ModbusTcpC
 
 
 @pytest.mark.end_to_end
-def test_able_to_send_integer16(mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient):
+def test_able_to_send_integer16(
+    mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient
+):
     random_value = random.randint(0, 30)
     message_dictorionary = {"action": "testRegister", "value": random_value}
 
@@ -79,7 +82,9 @@ def test_able_to_send_float32(mqtt_client: mqtt.Client, modbus_client: ModbusTcp
 
 
 @pytest.mark.end_to_end
-def test_able_to_send_command_with_float64(mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient):
+def test_able_to_send_command_with_float64(
+    mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient
+):
     random_value = random.uniform(0, 30)
     message_dictionary = {"action": "testFloat64Register", "value": random_value}
 
@@ -98,7 +103,9 @@ def test_able_to_send_command_with_float64(mqtt_client: mqtt.Client, modbus_clie
 
 
 @pytest.mark.end_to_end
-def test_able_to_send_integer64(mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient):
+def test_able_to_send_integer64(
+    mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient
+):
     random_value = random.randint(0, 100)
     message_dictorionary = {"action": "testInt64Register", "value": random_value}
 
