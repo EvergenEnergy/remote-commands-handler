@@ -27,10 +27,10 @@ def modbus_client():
 
 
 @pytest.mark.end_to_end
-def test_able_to_update_coil(mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient):
-    random_value = random.randint(1, 2) % 2 == 0
+@pytest.mark.parametrize("coil_value", [False, True])
+def test_able_to_update_coil(mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient, coil_value: bool):
 
-    message_dictionary = {"action": "testCoil", "value": random_value}
+    message_dictionary = {"action": "testCoil", "value": coil_value}
     message = json.dumps(message_dictionary)
 
     mqtt_client.publish("commands/test", message)
@@ -39,7 +39,7 @@ def test_able_to_update_coil(mqtt_client: mqtt.Client, modbus_client: ModbusTcpC
 
     value = modbus_client.read_coils(504, 1, 1)
 
-    assert value.bits[0] is random_value
+    assert value.bits[0] is coil_value
 
 
 @pytest.mark.end_to_end
