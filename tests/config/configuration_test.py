@@ -10,13 +10,24 @@ from app.configuration import (
     HoldingRegister,
     ModbusSettings,
     MqttSettings,
+    path_to_yaml_data,
+    _validate_config,
 )
-from app.exceptions import ConfigurationFileNotFoundError
+from app.exceptions import ConfigurationFileNotFoundError, ConfigurationFileInvalidError
 
 
 def test_throws_exception_when_configuration_file_not_found():
     with pytest.raises(ConfigurationFileNotFoundError):
         Configuration.from_file("./tests/config/bad-example_configuration.yaml")
+
+
+def test_throws_exception_when_configuration_file_has_syntax_errors():
+    bad_yaml_path = "/tmp/bad.yaml"
+    with open(bad_yaml_path, "w") as bad:
+        bad.write("not actually yaml")
+    with pytest.raises(ConfigurationFileInvalidError):
+        Configuration.from_file(bad_yaml_path)
+    os.remove(bad_yaml_path)
 
 
 def test_get_coil():
@@ -101,3 +112,19 @@ def test_get_registers():
     )
 
     assert holding_registers == configuration.get_holding_registers()
+
+
+def test_validate_config_data():
+    config = path_to_yaml_data(_config_path())
+
+    for key in ("modbus_settings", "mqtt_settings", "modbus_mapping"):
+        c = config.copy()
+        del c[key]
+        with pytest.raises(ConfigurationFileInvalidError):
+            _validate_config(c)
+
+    for datatype in ("coils", "holding_registers"):
+        c = config.copy()
+        del c["modbus_mapping"][datatype][0]["address"]
+        with pytest.raises(ConfigurationFileInvalidError):
+            _validate_config(c)

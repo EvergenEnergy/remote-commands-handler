@@ -8,3 +8,10 @@ class ConfigurationFileNotFoundError(Exception):
         self.path = path
         self.message = message + path
         super().__init__(self.message)
+
+
+class ConfigurationFileInvalidError(Exception):
+    """Exception raised when the configuration file contains errors."""
+
+    def __init__(self, message="Configuration file contains errors: "):
+        super().__init__(message)

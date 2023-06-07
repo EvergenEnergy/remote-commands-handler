@@ -29,6 +29,10 @@ cd remote-commands-handler
 
 3. Install dependencies:
 
+```bash
+poetry install
+```
+
 ## Running the Tests
 
 This project uses pytest for unit testing.
@@ -36,7 +40,9 @@ To run the tests:
 
 ```bash
 poetry install
+poetry run pytest
 ```
+
 ## Usage
 To run the application:
 
@@ -46,12 +52,26 @@ poetry run python main.py
 
 or
 ```bash
-docker run -e CONFIGURATION_PATH=config/configuration.yaml ghcr.io/evergenenergy/remote-comands-handler:latest
-``````
+docker run -e CONFIGURATION_PATH=config/configuration.yaml ghcr.io/evergenenergy/remote-commands-handler:latest
+```
+
+Once `main.py` is running, you can publish JSON payloads to your MQTT broker and these will be transformed into commands sent to Modbus. The expected JSON format is:
+
+```
+{
+    "action": "firstCoilSlot",
+    "value": 1
+}
+```
 
 ## Configuration
 
-Modify the config.yml file to match your MQTT and Modbus settings.
+You will need to modify the `configuration.yaml` file to match your MQTT and Modbus settings.
+
+- Provide the required host and port number for your MQTT broker in the `mqtt_settings` section, as well as the topic to subscribe to, and for your Modbus server in the `modbus_settings` section
+- The `modbus_mappings` section allows you to configure the coils and holding registers available on your Modbus server
+- Each entry under `coils` and `holding_registers` refers to a space where Modbus will store data. The `name` for each entry will correspond to the `action` of your JSON payloads. The `address` for each entry identifies the relevant location within the Modbus server.
+- For holding registers, you must also specify the `data_type` and `byte_order` for each register.
 
 ## Contributing
 
