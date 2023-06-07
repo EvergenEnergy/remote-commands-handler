@@ -22,3 +22,6 @@ jobs:
               exit 1
             fi
           done
+      - name: Run Prettier
+        run: |
+          docker run --rm -v ${PWD}:/work tmknom/prettier --check ./**/*.json
