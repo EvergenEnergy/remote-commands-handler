@@ -26,7 +26,7 @@ modbus_mapping:
       scale: 1.0  # Fill this in
       address: [0]  # Fill this in with actual Modbus register address for evgBatteryMode
     - name: evgBatteryTargetPowerWatts
-      byte_order: AB  # Fill this in`
+      byte_order: AB  # Fill this in
       data_type: INT16  # Fill this in
       scale: 1.0  # Fill this in
       address: [1]  # Fill this in with actual Modbus register address for evgBatteryTargetPowerWatts
@@ -67,3 +67,5 @@ modbus_mapping:
       address: [502]  # Fill this in with actual Modbus register address for the coil
     - name: evgBatteryTargetSOCPercentCoil  # Assuming 'evgBatteryTargetSOCPercent' is also represented as a coil
       address: [503]  # Fill this in with actual Modbus register address for the coil
+    - name: testCoil
+      address: [504]

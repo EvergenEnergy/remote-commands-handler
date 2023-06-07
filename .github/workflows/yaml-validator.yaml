@@ -1,34 +1,26 @@
+---
 name: YAML and EOL validation
-
 on:
   push:
-    paths:
-      - '**.yaml'
+    paths: ['**.yaml']
   pull_request:
-    paths:
-      - '**.yaml'
-
+    paths: ['**.yaml']
 jobs:
   lint:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
       - name: Setup Python
         uses: actions/setup-python@v3
         with:
-          python-version: '3.x'
-
+          python-version: 3.x
       - name: Install yamllint
         run: pip install yamllint
-
       - name: Run yamllint
         run: yamllint -c .yamllint . -f parsable
-
       - name: Check for EOL at end of file
-        run: |
+        run: |-
           for file in $(find . -name '*.yaml'); do
             if [ "$(tail -c 1 "$file")" != "" ]; then
               echo "$file does not end with an EOL"

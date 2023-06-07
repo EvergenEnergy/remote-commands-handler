@@ -1,72 +1,60 @@
+---
 version: '3'
 services:
   mosquitto:
     container_name: mosquitto
     image: eclipse-mosquitto:2.0.14
     user: ${USER_ID}:${GROUP_ID}
-    volumes:
-      - ./tests/mosquitto/mosquitto.conf:/mqtt/config/mosquitto.conf
-    ports:
-      - "1883"
-      - "9001"
-    command: ["mosquitto", "-c", "/mqtt/config/mosquitto.conf"]
+    volumes: [./tests/mosquitto/mosquitto.conf:/mqtt/config/mosquitto.conf]
+    ports: [1883:1883, 9001:9001]
+    command: [mosquitto, -c, /mqtt/config/mosquitto.conf]
     restart: always
     logging:
       options:
         max-size: 10m
-
-  pymodbus-server:
-    container_name: pymodbus-server
+  pymodbus:
+    container_name: pymodbus
     image: ghcr.io/pymodbus-dev/pymodbus:v3.1.0
     command:
-      - "pymodbus.server"
-      - "--host"
-      - "0.0.0.0"
-      - "--web-port"
-      - "8080"
-      - "--verbose"
-      - "--no-repl"
-      - "run"
-      - "--modbus-server"
-      - "tcp"
-      - "--framer"
-      - "socket"
-      - "--unit-id"
-      - "1"
-      - "--unit-id"
-      - "2"
-      - "--unit-id"
-      - "3"
-      - "--unit-id"
-      - "4"
-      - "--random"
-      - "0"
-      - "--modbus-port"
-      - "5020"
-      - "--modbus-config"
-      - "/pymodbus/config.json"
-    volumes:
-      - ./config.json:/pymodbus/config.json
-    ports:
-      - "5020"
-      - "8080"
+      - pymodbus.server
+      - --host
+      - 0.0.0.0
+      - --web-port
+      - '8080'
+      - --verbose
+      - --no-repl
+      - run
+      - --modbus-server
+      - tcp
+      - --framer
+      - socket
+      - --unit-id
+      - '1'
+      - --unit-id
+      - '2'
+      - --unit-id
+      - '3'
+      - --unit-id
+      - '4'
+      - --random
+      - '0'
+      - --modbus-port
+      - '5020'
+      - --modbus-config
+      - /pymodbus/config.json
+    volumes: [./tests/modbus/config.json:/pymodbus/config.json]
+    ports: [5020:5020, 8080:8080]
     restart: on-failure
     logging:
       options:
         max-size: 10m
-
   command_handler:
     container_name: command_handler_local
     build:
       context: .
       dockerfile: Dockerfile  # Replace with the actual name of your Dockerfile if different
-    environment:
-      - CONFIGURATION_PATH=/config/configuration.yaml
+    environment: [CONFIGURATION_PATH=/config/configuration.yaml]
     volumes:
-      - ./config:/config
-    links:
-      - mosquitto
-      - pymodbus-server
-    depends_on:
-      - mosquitto
-      - pymodbus-server
+      - ./tests/end-to-end/configuration.yaml:/config/configuration.yaml
+    links: [mosquitto, pymodbus]
+    depends_on: [mosquitto, pymodbus]

@@ -1,5 +1,5 @@
 ---
-name: Test & Linting
+name: End to end tests
 on:
   push:
 jobs:
@@ -19,17 +19,16 @@ jobs:
           pip install --upgrade pip
           pip install poetry
           poetry install -v
-      - name: Lint with pylint
+      - name: Set up Docker Compose
         run: |
-          poetry run pylint -E --rcfile=./.pylintrc app/ main.py
-      - name: Check code formatting with Black
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+      - name: Run containers
         run: |
-          poetry run black --check .
-      - name: Test with pytest
+          docker-compose up -d
+      - name: Run end to end tests
         run: |
-          poetry run  coverage run --source=main.py --source=app -m pytest -m "not end_to_end"
-      - name: Report coverage with Coveralls
+          poetry run pytest -m end_to_end
+      - name: Stop containers
         run: |
-          poetry run coveralls
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+          docker-compose down
