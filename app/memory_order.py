@@ -1,4 +1,5 @@
 from pymodbus.constants import Endian
+from app.exceptions import InvalidArgumentError
 
 
 class MemoryOrder:
@@ -17,6 +18,9 @@ class MemoryOrder:
             case "AB":
                 word_order = Endian.Big
                 byte_order = Endian.Big
+            case "ABCD":
+                word_order = Endian.Big
+                byte_order = Endian.Big
             case "BA":
                 word_order = Endian.Little
                 byte_order = Endian.Little
@@ -27,7 +31,8 @@ class MemoryOrder:
                 word_order = Endian.Big
                 byte_order = Endian.Little
             case _:
-                word_order = Endian.Big
-                byte_order = Endian.Big
+                raise InvalidArgumentError(
+                    "Invalid memory order. Valid orders are 'AB', 'BA', 'ABCD', 'CDAB' and 'BADC'."
+                )
 
         return (byte_order, word_order)

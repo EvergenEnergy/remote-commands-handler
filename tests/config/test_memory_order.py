@@ -1,8 +1,10 @@
 """Tests for the MemoryOrder class."""
 
+import pytest
 from pymodbus.constants import Endian
 
 from app.memory_order import MemoryOrder
+from app.exceptions import InvalidArgumentError
 
 
 def test_get_AB_order():
@@ -50,10 +52,7 @@ def test_get_BADC():
     assert byte_order == Endian.Little
 
 
-def test_get_default_order():
-    order = MemoryOrder("")
-
-    byte_order, word_order = order.order()
-
-    assert word_order == Endian.Big
-    assert byte_order == Endian.Big
+def test_get_unknown_order():
+    with pytest.raises(InvalidArgumentError) as ex:
+        _ = MemoryOrder("FOO")
+    assert "Invalid memory order" in str(ex.value)
