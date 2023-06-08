@@ -1,6 +1,5 @@
 """Unit tests for the ModbusClient class in the app.modbus_client module."""
 
-import unittest
 import socket
 import threading
 from multiprocessing import Pipe
@@ -18,8 +17,8 @@ from app.configuration import (
 )
 
 
-class TestModbusClient(unittest.TestCase):
-    def setUp(self):
+class TestModbusClient:
+    def setup_class(self):
         # This method will be called before every test
         self.coils = [Coil("test_coil", [1])]
         self.holding_registers = [
@@ -80,7 +79,7 @@ class TestModbusClient(unittest.TestCase):
         client.write_coil("test_coil", True)
         sent = read.recv()
         thread.join()
-        self.assertTrue(sent)
+        assert sent is True
 
     def test_write_coils(self):
         read, write = Pipe(duplex=False)
@@ -97,7 +96,7 @@ class TestModbusClient(unittest.TestCase):
         client.write_coils("test_coil", [True, True])
         sent = read.recv()
         thread.join()
-        self.assertTrue(sent)
+        assert sent is True
 
     def test_write_int_to_holding_registers(self):
         read, write = Pipe(duplex=False)
@@ -114,7 +113,7 @@ class TestModbusClient(unittest.TestCase):
         client.write_register("test_register", 10)
         sent = read.recv()
         thread.join()
-        self.assertTrue(sent)
+        assert sent is True
 
     def test_write_float_to_holding_registers(self):
         read, write = Pipe(duplex=False)
@@ -132,8 +131,4 @@ class TestModbusClient(unittest.TestCase):
         client.write_register("float_register", 32.3)
         sent = read.recv()
         thread.join()
-        self.assertTrue(sent)
-
-
-if __name__ == "__main__":
-    unittest.main()
+        assert sent is True

@@ -13,5 +13,12 @@ class ConfigurationFileNotFoundError(Exception):
 class ConfigurationFileInvalidError(Exception):
     """Exception raised when the configuration file contains errors."""
 
-    def __init__(self, message="Configuration file contains errors: "):
+    def __init__(self, message="Configuration file contains errors"):
+        super().__init__(message)
+
+
+class InvalidArgumentError(Exception):
+    """Exception raised when a function is called with invalid arguments."""
+
+    def __init__(self, message="Unknown argument"):
         super().__init__(message)
