@@ -1,134 +1,58 @@
-"""Unit tests for the ModbusClient class in the app.modbus_client module."""
+"""Unit tests for the MqttClient class in the app.mqtt_client module."""
 
-import socket
-import threading
-from multiprocessing import Pipe
-
+from unittest.mock import MagicMock
 from pymodbus.client import ModbusTcpClient
-from app.memory_order import MemoryOrder
-
 from app.modbus_client import ModbusClient
-from app.configuration import (
-    Coil,
-    Configuration,
-    HoldingRegister,
-    ModbusSettings,
-    MqttSettings,
-)
+from app.configuration import Coil, Configuration, ModbusSettings, HoldingRegister
+from app.memory_order import MemoryOrder
+import pytest
 
 
 class TestModbusClient:
     def setup_class(self):
-        # This method will be called before every test
         self.coils = [Coil("test_coil", [1])]
         self.holding_registers = [
-            HoldingRegister("test_register", MemoryOrder("AB"), "INT16", 1.0, [1]),
+            HoldingRegister("int_register", MemoryOrder("AB"), "INT16", 1.0, [1]),
             HoldingRegister(
                 "float_register", MemoryOrder("BA"), "FLOAT32-IEEE", 1.0, [1]
             ),
         ]
-        self.mqtt_settings = MqttSettings("test", 100, "test")
+        self.modbus_settings = ModbusSettings("localhost", 5020)
+        self.mock_client = MagicMock(spec=ModbusTcpClient)
 
-    def start_local_tcp_client(self, f):
-        read, write = Pipe(duplex=False)
-        tcp_thread = threading.Thread(target=self.setup_tcp_client, args=(f, write))
-        tcp_thread.start()
-        port = read.recv()
-        return tcp_thread, port
-
-    def handle_socket_message(self, client_socket: socket.socket, call_back):
-        message = client_socket.recv(40)
-        client_socket.send(message)
-        call_back(message)
-
-    def setup_tcp_client(self, f, chan) -> threading.Thread:
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        host = "localhost"
-        port = 8080
-        while True:
-            try:
-                # Attempt to bind the socket to the host and port
-                server_socket.bind((host, port))
-                break
-            except socket.error:
-                port += 1
-        chan.send(port)
-        # Listen for incoming connections
-        server_socket.listen()
-        # Accept a client connection
-        client_socket, _ = server_socket.accept()
-        # Create a new thread to handle the client connection
-        client_thread = threading.Thread(
-            target=self.handle_socket_message, args=(client_socket, f)
-        )
-        client_thread.start()
-        return port
-
-    def test_write_coil(self):
-        read, write = Pipe(duplex=False)
-
-        def test(_message):
-            write.send(True)
-
-        thread, port = self.start_local_tcp_client(test)
-        modbus_settings = ModbusSettings("localhost", port)
         configuration = Configuration(
-            self.coils, [], self.mqtt_settings, modbus_settings
+            self.coils, self.holding_registers, {}, self.modbus_settings
         )
-        client = ModbusClient(configuration, ModbusTcpClient("localhost", port=port))
-        client.write_coil("test_coil", True)
-        sent = read.recv()
-        thread.join()
-        assert sent is True
 
-    def test_write_coils(self):
-        read, write = Pipe(duplex=False)
+        self.modbus_client = ModbusClient(configuration, self.mock_client)
 
-        def test(_message):
-            write.send(True)
+    @pytest.mark.parametrize("coil_value", [False, True])
+    def test_coils(self, coil_value, caplog):
+        coil_list = [coil_value] * 2
+        for coil in self.coils:
+            self.modbus_client.write_coil(coil.name, coil_value)
+            self.mock_client.write_coil.assert_called_with(
+                coil.address[0], coil_value, 1
+            )
 
-        thread, port = self.start_local_tcp_client(test)
-        modbus_settings = ModbusSettings("localhost", port)
-        configuration = Configuration(
-            self.coils, [], self.mqtt_settings, modbus_settings
+            self.modbus_client.write_coils(coil.name, coil_list)
+            self.mock_client.write_coils.assert_called_with(coil.address[0], coil_list)
+
+        self.modbus_client.write_coil("bad_coil", coil_value)
+        assert "unknown action" in str(caplog.records[-1])
+        self.modbus_client.write_coils("bad_coil", coil_list)
+        assert "unknown action" in str(caplog.records[-1])
+
+    def test_registers(self, caplog):
+        for register in self.holding_registers:
+            if "INT" in register.data_type:
+                value = 10
+            elif "FLOAT" in register.data_type:
+                value = 32.3
+            self.modbus_client.write_register(register.name, value)
+        assert self.mock_client.write_registers.call_count == len(
+            self.holding_registers
         )
-        client = ModbusClient(configuration, ModbusTcpClient("localhost", port=port))
-        client.write_coils("test_coil", [True, True])
-        sent = read.recv()
-        thread.join()
-        assert sent is True
 
-    def test_write_int_to_holding_registers(self):
-        read, write = Pipe(duplex=False)
-
-        def test(_message):
-            write.send(True)
-
-        thread, port = self.start_local_tcp_client(test)
-        modbus_settings = ModbusSettings("localhost", port)
-        configuration = Configuration(
-            [], self.holding_registers, self.mqtt_settings, modbus_settings
-        )
-        client = ModbusClient(configuration, ModbusTcpClient("localhost", port=port))
-        client.write_register("test_register", 10)
-        sent = read.recv()
-        thread.join()
-        assert sent is True
-
-    def test_write_float_to_holding_registers(self):
-        read, write = Pipe(duplex=False)
-
-        def test(_message):
-            print(_message)
-            write.send(True)
-
-        thread, port = self.start_local_tcp_client(test)
-        modbus_settings = ModbusSettings("localhost", port)
-        configuration = Configuration(
-            [], self.holding_registers, self.mqtt_settings, modbus_settings
-        )
-        client = ModbusClient(configuration, ModbusTcpClient("localhost", port=port))
-        client.write_register("float_register", 32.3)
-        sent = read.recv()
-        thread.join()
-        assert sent is True
+        self.modbus_client.write_register("bad_register", 54)
+        assert "unknown action" in str(caplog.records[-1])
