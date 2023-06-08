@@ -1,10 +1,10 @@
-"""Unit tests for the MqttClient class in the app.mqtt_client module."""
+"""Unit tests for the ModbusClient class in the app.modbus_client module."""
 
 from unittest.mock import MagicMock
 from pymodbus.client import ModbusTcpClient
+from app.memory_order import MemoryOrder
 from app.modbus_client import ModbusClient
 from app.configuration import Coil, Configuration, ModbusSettings, HoldingRegister
-from app.memory_order import MemoryOrder
 import pytest
 
 
