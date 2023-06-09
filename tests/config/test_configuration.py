@@ -5,6 +5,7 @@ from copy import deepcopy
 import pytest
 from pymodbus.constants import Endian
 
+import app.configuration
 from app.configuration import (
     Coil,
     Configuration,
@@ -121,6 +122,12 @@ def test_validate_config_data():
 
     for key in ("modbus_settings", "mqtt_settings", "modbus_mapping"):
         c = deepcopy(config)
+
+        c[key] = ["is a list", "not a dict"]
+        with pytest.raises(ConfigurationFileInvalidError) as ex:
+            _validate_config(c)
+        assert key in str(ex.value)
+
         del c[key]
         with pytest.raises(ConfigurationFileInvalidError) as ex:
             _validate_config(c)
@@ -128,11 +135,13 @@ def test_validate_config_data():
 
         if key != "modbus_mapping":
             c = deepcopy(config)
+
             c[key]["host"] = ""
             with pytest.raises(ConfigurationFileInvalidError) as ex:
                 _validate_config(c)
             assert "host" in str(ex.value)
             assert key in str(ex.value)
+
             del c[key]["host"]
             with pytest.raises(ConfigurationFileInvalidError) as ex:
                 _validate_config(c)
@@ -145,3 +154,37 @@ def test_validate_config_data():
         with pytest.raises(ConfigurationFileInvalidError) as ex:
             _validate_config(c)
         assert "address" in str(ex.value)
+
+
+def test_key_error_in_config_parsing(monkeypatch):
+    """
+    Test that if the config module looks for a dict key which isn't set in the file,
+    we capture that error in a custom exception
+    """
+
+    def modbus_settings_with_unknown_key(data):
+        return ModbusSettings(data["not_host_key"], data["not_port"])
+
+    def modbus_settings_with_bad_type(data):
+        settings = [1, 2, 3]
+        return ModbusSettings(settings["host"], settings["port"])
+
+    with monkeypatch.context() as m:
+        m.setattr(
+            app.configuration,
+            "_modbus_settings_from_yaml_data",
+            modbus_settings_with_unknown_key,
+        )
+        with pytest.raises(ConfigurationFileInvalidError) as ex:
+            _ = Configuration.from_file(_config_path())
+        assert "Error parsing configuration" in str(ex.value)
+        assert "not_host_key" in str(ex.value)
+
+        m.setattr(
+            app.configuration,
+            "_modbus_settings_from_yaml_data",
+            modbus_settings_with_bad_type,
+        )
+        with pytest.raises(ConfigurationFileInvalidError) as ex:
+            _ = Configuration.from_file(_config_path())
+        assert "Error parsing configuration" in str(ex.value)

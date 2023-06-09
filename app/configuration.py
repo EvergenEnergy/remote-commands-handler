@@ -83,13 +83,22 @@ class Configuration:
                 msg = f"Error encountered parsing YAML {str(exc.problem_mark)}"
             raise ConfigurationFileInvalidError(msg)
 
-        _validate_config(yaml_data)
+        try:
+            _validate_config(yaml_data)
 
-        coils = _coils_data_from_yaml_data(yaml_data)
-        holding_registers = _holding_register_from_yaml_data(yaml_data)
-        mqtt_settings = _mqtt_settings_from_yaml_data(yaml_data)
-        modbus_settings = _modbus_settings_from_yaml_data(yaml_data)
-        return cls(coils, holding_registers, mqtt_settings, modbus_settings)
+            coils = _coils_data_from_yaml_data(yaml_data)
+            holding_registers = _holding_register_from_yaml_data(yaml_data)
+            mqtt_settings = _mqtt_settings_from_yaml_data(yaml_data)
+            modbus_settings = _modbus_settings_from_yaml_data(yaml_data)
+            return cls(coils, holding_registers, mqtt_settings, modbus_settings)
+        except TypeError as ex:
+            raise ConfigurationFileInvalidError(
+                f"Error parsing configuration YAML: {ex}"
+            )
+        except KeyError as ex:
+            raise ConfigurationFileInvalidError(
+                f"Error parsing configuration YAML: expected key {ex} was not found"
+            )
 
     def get_coil(self, name: str) -> Coil:
         return self.coils_map[name]
@@ -162,8 +171,8 @@ def _validate_config(config: dict):
     }
     try:
         for req_key, req_items in required_settings.items():
-            assert (
-                req_key in config
+            assert req_key in config and isinstance(
+                config[req_key], dict
             ), f"No {req_key!r} section provided in configuration"
             for item in req_items:
                 assert (
@@ -189,5 +198,5 @@ def _validate_config(config: dict):
                 assert (
                     key in ref
                 ), f"Holding register reference #{index} has no config setting for {key!r}"
-    except AssertionError as ex:
+    except (AssertionError, TypeError) as ex:
         raise ConfigurationFileInvalidError(ex)
