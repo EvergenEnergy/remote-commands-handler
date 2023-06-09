@@ -167,7 +167,7 @@ def _validate_config(config: dict):
             ), f"No {req_key!r} section provided in configuration"
             for item in req_items:
                 assert (
-                    item in config[req_key]
+                    item in config[req_key] and config[req_key][item]
                 ), f"No {item!r} provided in {req_key!r} section of configuration"
 
         mapping = config["modbus_mapping"]
