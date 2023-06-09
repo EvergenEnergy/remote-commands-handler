@@ -83,13 +83,22 @@ class Configuration:
                 msg = f"Error encountered parsing YAML {str(exc.problem_mark)}"
             raise ConfigurationFileInvalidError(msg)
 
-        _validate_config(yaml_data)
+        try:
+            _validate_config(yaml_data)
 
-        coils = _coils_data_from_yaml_data(yaml_data)
-        holding_registers = _holding_register_from_yaml_data(yaml_data)
-        mqtt_settings = _mqtt_settings_from_yaml_data(yaml_data)
-        modbus_settings = _modbus_settings_from_yaml_data(yaml_data)
-        return cls(coils, holding_registers, mqtt_settings, modbus_settings)
+            coils = _coils_data_from_yaml_data(yaml_data)
+            holding_registers = _holding_register_from_yaml_data(yaml_data)
+            mqtt_settings = _mqtt_settings_from_yaml_data(yaml_data)
+            modbus_settings = _modbus_settings_from_yaml_data(yaml_data)
+            return cls(coils, holding_registers, mqtt_settings, modbus_settings)
+        except TypeError as ex:
+            raise ConfigurationFileInvalidError(
+                f"Error parsing configuration YAML: {ex}"
+            )
+        except KeyError as ex:
+            raise ConfigurationFileInvalidError(
+                f"Error parsing configuration YAML: expected key {ex} was not found"
+            )
 
     def get_coil(self, name: str) -> Coil:
         return self.coils_map[name]
