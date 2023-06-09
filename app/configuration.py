@@ -155,12 +155,20 @@ def _holding_register_from_yaml_data(data):
 
 
 def _validate_config(config: dict):
-    required_settings = ("mqtt_settings", "modbus_settings", "modbus_mapping")
+    required_settings = {
+        "mqtt_settings": ["host", "port", "command_topic"],
+        "modbus_settings": ["host", "port"],
+        "modbus_mapping": [],
+    }
     try:
-        for req_key in required_settings:
+        for req_key, req_items in required_settings.items():
             assert (
                 req_key in config
             ), f"No {req_key!r} section provided in configuration"
+            for item in req_items:
+                assert (
+                    item in config[req_key] and config[req_key][item]
+                ), f"No {item!r} provided in {req_key!r} section of configuration"
 
         mapping = config["modbus_mapping"]
         keys_defined = sum(

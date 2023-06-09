@@ -1,5 +1,6 @@
 """Tests for the Configuration module."""
 import os
+from copy import deepcopy
 
 import pytest
 from pymodbus.constants import Endian
@@ -119,14 +120,27 @@ def test_validate_config_data():
     config = path_to_yaml_data(_config_path())
 
     for key in ("modbus_settings", "mqtt_settings", "modbus_mapping"):
-        c = config.copy()
+        c = deepcopy(config)
         del c[key]
         with pytest.raises(ConfigurationFileInvalidError) as ex:
             _validate_config(c)
         assert key in str(ex.value)
 
+        if key != "modbus_mapping":
+            c = deepcopy(config)
+            c[key]["host"] = ""
+            with pytest.raises(ConfigurationFileInvalidError) as ex:
+                _validate_config(c)
+            assert "host" in str(ex.value)
+            assert key in str(ex.value)
+            del c[key]["host"]
+            with pytest.raises(ConfigurationFileInvalidError) as ex:
+                _validate_config(c)
+            assert "host" in str(ex.value)
+            assert key in str(ex.value)
+
     for datatype in ("coils", "holding_registers"):
-        c = config.copy()
+        c = deepcopy(config)
         del c["modbus_mapping"][datatype][0]["address"]
         with pytest.raises(ConfigurationFileInvalidError) as ex:
             _validate_config(c)
