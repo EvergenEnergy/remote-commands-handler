@@ -162,8 +162,8 @@ def _validate_config(config: dict):
     }
     try:
         for req_key, req_items in required_settings.items():
-            assert (
-                req_key in config
+            assert req_key in config and isinstance(
+                config[req_key], dict
             ), f"No {req_key!r} section provided in configuration"
             for item in req_items:
                 assert (
@@ -189,5 +189,5 @@ def _validate_config(config: dict):
                 assert (
                     key in ref
                 ), f"Holding register reference #{index} has no config setting for {key!r}"
-    except AssertionError as ex:
+    except (AssertionError, TypeError) as ex:
         raise ConfigurationFileInvalidError(ex)

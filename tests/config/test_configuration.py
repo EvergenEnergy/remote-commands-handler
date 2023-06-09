@@ -121,6 +121,12 @@ def test_validate_config_data():
 
     for key in ("modbus_settings", "mqtt_settings", "modbus_mapping"):
         c = deepcopy(config)
+
+        c[key] = ["is a list", "not a dict"]
+        with pytest.raises(ConfigurationFileInvalidError) as ex:
+            _validate_config(c)
+        assert key in str(ex.value)
+
         del c[key]
         with pytest.raises(ConfigurationFileInvalidError) as ex:
             _validate_config(c)
@@ -128,11 +134,13 @@ def test_validate_config_data():
 
         if key != "modbus_mapping":
             c = deepcopy(config)
+
             c[key]["host"] = ""
             with pytest.raises(ConfigurationFileInvalidError) as ex:
                 _validate_config(c)
             assert "host" in str(ex.value)
             assert key in str(ex.value)
+
             del c[key]["host"]
             with pytest.raises(ConfigurationFileInvalidError) as ex:
                 _validate_config(c)
