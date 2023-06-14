@@ -25,8 +25,10 @@ Note:
 import logging
 
 from pymodbus.client import ModbusTcpClient
+from pymodbus.exceptions import ModbusException
 from app.configuration import Configuration, HoldingRegister
 from app.payload_builder import PayloadBuilder
+from app.exceptions import UnknownCommandError, ModbusClientError, InvalidMessageError
 
 
 class ModbusClient:
@@ -39,39 +41,63 @@ class ModbusClient:
         self._client = modbus_client
 
     def write_coils(self, name: str, value: list[bool]):
-        try:
-            coil_configuration = self.configuration.get_coil(name)
-            self._client.connect()
-            self._client.write_coils(coil_configuration.address[0], value)
-            self._client.close()
-            logging.debug("wrote to coils: %s, values: %s", name, value)
-        except KeyError:
-            logging.error("unknown action: %s", name)
+        coil_configuration = self.configuration.get_coil(name)
+        if coil_configuration:
+            try:
+                self._client.connect()
+                self._client.write_coils(coil_configuration.address[0], value)
+                self._client.close()
+                logging.debug(f"wrote to coil {name}, value: {value!r}")
+                return len(value)
+            except ModbusException as ex:
+                raise ModbusClientError(ex)
+        return 0
 
     def write_coil(self, name: str, value: bool):
-        try:
-            coil_configuration = self.configuration.get_coil(name)
-            self._client.connect()
-            self._client.write_coil(coil_configuration.address[0], value, 1)
-            self._client.close()
-            logging.debug("wrote to coil: %s, value: %s", name, value)
-        except KeyError:
-            logging.error("unknown action: %s", name)
+        coil_configuration = self.configuration.get_coil(name)
+        if coil_configuration:
+            try:
+                self._client.connect()
+                self._client.write_coil(coil_configuration.address[0], value, 1)
+                self._client.close()
+                logging.debug(f"wrote to coil {name}, value: {value!r}")
+                return 1
+            except ModbusException as ex:
+                raise ModbusClientError(ex)
+        return 0
 
     def write_register(self, name: str, value):
-        try:
-            holding_register_configuration = self.configuration.get_holding_register(
-                name
-            )
-            self._client.connect()
-            payload = _build_register_payload(holding_register_configuration, value)
-            self._client.write_registers(
-                holding_register_configuration.address[0], payload, 1
-            )
-            self._client.close()
-            logging.debug("wrote to register %s, value: %s", name, value)
-        except KeyError:
-            logging.error("unknown action: %s", name)
+        holding_register_configuration = self.configuration.get_holding_register(name)
+        if holding_register_configuration:
+            try:
+                payload = _build_register_payload(holding_register_configuration, value)
+            except Exception as ex:
+                raise InvalidMessageError(ex)
+            try:
+                self._client.connect()
+                self._client.write_registers(
+                    holding_register_configuration.address[0], payload, 1
+                )
+                self._client.close()
+                logging.debug(f"wrote to register {name}, value: {value!r}")
+                return 1
+            except ModbusException as ex:
+                raise ModbusClientError(ex)
+        return 0
+
+    def write_command(self, name: str, value):
+        sent = 0
+
+        coil_configuration = self.configuration.get_coil(name)
+        if coil_configuration:
+            sent += self.write_coil(name, bool(value))
+
+        holding_register_configuration = self.configuration.get_holding_register(name)
+        if holding_register_configuration:
+            sent += self.write_register(name, value)
+
+        if sent == 0:
+            raise UnknownCommandError(name)
 
 
 def _build_register_payload(holding_register: HoldingRegister, value):

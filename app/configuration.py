@@ -101,7 +101,7 @@ class Configuration:
             )
 
     def get_coil(self, name: str) -> Coil:
-        return self.coils_map[name]
+        return self.coils_map.get(name)
 
     def get_coils(self) -> list[Coil]:
         return list(self.coils_map.values())
@@ -110,7 +110,7 @@ class Configuration:
         return list(self.holding_register_map.values())
 
     def get_holding_register(self, name: str) -> HoldingRegister:
-        return self.holding_register_map[name]
+        return self.holding_register_map.get(name)
 
     def get_mqtt_settings(self) -> MqttSettings:
         return self.mqtt_settings
@@ -179,6 +179,17 @@ def _validate_config(config: dict):
                     item in config[req_key] and config[req_key][item]
                 ), f"No {item!r} provided in {req_key!r} section of configuration"
 
+        def _is_valid_command_topic(topic):
+            # Command topic must be str, must not have more than 7 levels
+            return (
+                isinstance(config["mqtt_settings"]["command_topic"], str)
+                and config["mqtt_settings"]["command_topic"].count("/") <= 7  # noqa
+            )
+
+        assert _is_valid_command_topic(
+            config["mqtt_settings"]["command_topic"]
+        ), "The command topic must be a valid MQTT topic name"
+
         mapping = config["modbus_mapping"]
         keys_defined = sum(
             [len(mapping.get(k, [])) for k in ("holding_registers", "coils")]
@@ -198,5 +209,5 @@ def _validate_config(config: dict):
                 assert (
                     key in ref
                 ), f"Holding register reference #{index} has no config setting for {key!r}"
-    except (AssertionError, TypeError) as ex:
+    except (AssertionError, TypeError, ValueError) as ex:
         raise ConfigurationFileInvalidError(ex)

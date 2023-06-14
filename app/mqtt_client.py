@@ -21,10 +21,12 @@ Note:
 """
 
 import logging
-from json import JSONDecodeError
 from typing import Callable
 
 import paho.mqtt.client as mqtt
+
+from app.message import CommandMessage
+from app.exceptions import InvalidMessageError
 
 
 def _decode_message(message):
@@ -84,11 +86,12 @@ class MqttClient:
     def _on_message(self):
         def inner(_client, _userdata, message):
             try:
-                msg = _decode_message(message)
-                logging.debug("Received message: %s", msg)
-                for callback in self.on_message_callbacks:
-                    callback(msg)
-            except JSONDecodeError:
-                logging.error("Error on decoding message: %s", msg)
+                msg_str = _decode_message(message)
+                msg_obj = CommandMessage.read(msg_str)
+            except InvalidMessageError as ex:
+                logging.error(ex)
+                return
+            for callback in self.on_message_callbacks:
+                callback(msg_obj)
 
         return inner

@@ -39,11 +39,12 @@ class TestMqttClient:
         self.mock_mqtt_client.subscribe.call_count == len(topic_list)
 
         # Pretend that the MQTT broker received a message and our callback is called
-        json_str = json.dumps({"action": "test_coil", "value": True})
+        json_obj = {"action": "test_coil", "value": True}
+        json_str = json.dumps(json_obj)
         paho_msg = MQTTMessage()
         paho_msg.payload = json_str.encode()
         self.mock_mqtt_client.on_message(self.mock_mqtt_client, None, paho_msg)
-        mock_modbus.message_callback.assert_called_with(json_str)
+        mock_modbus.message_callback.assert_called_with(json_obj)
 
     def test_bad_message(self, caplog):
         def read_json(json_str):
@@ -57,7 +58,7 @@ class TestMqttClient:
         paho_msg.payload = bad_json_str.encode()
         self.mock_mqtt_client.on_message(self.mock_mqtt_client, None, paho_msg)
         msg_str = str(caplog.records[0].message)
-        assert msg_str == f"Error on decoding message: {bad_json_str}"
+        assert "Message is invalid JSON" in msg_str
 
         self.mqtt_client.stop()
 

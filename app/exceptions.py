@@ -22,3 +22,24 @@ class InvalidArgumentError(Exception):
 
     def __init__(self, message="Unknown argument"):
         super().__init__(message)
+
+
+class InvalidMessageError(Exception):
+    """Exception raised when a message is not in the required format."""
+
+    def __init__(self, message):
+        super().__init__(message)
+
+
+class ModbusClientError(Exception):
+    """Exception raised when we fail to connect to the Modbus server."""
+
+    def __init__(self, message):
+        super().__init__(message)
+
+
+class UnknownCommandError(Exception):
+    """Exception raised when no coil or register is found matching the specified message action."""
+
+    def __init__(self, action):
+        super().__init__(f"No coil or register found to match {action!r}")
