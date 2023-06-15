@@ -29,16 +29,24 @@ from pymodbus.exceptions import ModbusException
 from app.configuration import Configuration, HoldingRegister
 from app.payload_builder import PayloadBuilder
 from app.exceptions import UnknownCommandError, ModbusClientError, InvalidMessageError
+from app.error_handler import ErrorHandler
 
 
 class ModbusClient:
     _client: ModbusTcpClient
 
     def __init__(
-        self, configuration: Configuration, modbus_client: ModbusTcpClient
+        self,
+        configuration: Configuration,
+        error_handler: ErrorHandler,
+        modbus_client: ModbusTcpClient = None,
     ) -> None:
         self.configuration = configuration
-        self._client = modbus_client
+        self.error_handler = error_handler
+        self._client = modbus_client or ModbusTcpClient(
+            configuration.get_modbus_settings().host,
+            port=configuration.get_modbus_settings().port,
+        )
 
     def write_coils(self, name: str, value: list[bool]):
         coil_configuration = self.configuration.get_coil(name)
@@ -50,6 +58,7 @@ class ModbusClient:
                 logging.debug(f"wrote to coil {name}, value: {value!r}")
                 return len(value)
             except ModbusException as ex:
+                self.error_handler.publish(ex)
                 raise ModbusClientError(ex)
         return 0
 
@@ -63,6 +72,7 @@ class ModbusClient:
                 logging.debug(f"wrote to coil {name}, value: {value!r}")
                 return 1
             except ModbusException as ex:
+                self.error_handler.publish(ex)
                 raise ModbusClientError(ex)
         return 0
 
@@ -72,6 +82,7 @@ class ModbusClient:
             try:
                 payload = _build_register_payload(holding_register_configuration, value)
             except Exception as ex:
+                self.error_handler.publish(ex)
                 raise InvalidMessageError(ex)
             try:
                 self._client.connect()
@@ -82,6 +93,7 @@ class ModbusClient:
                 logging.debug(f"wrote to register {name}, value: {value!r}")
                 return 1
             except ModbusException as ex:
+                self.error_handler.publish(ex)
                 raise ModbusClientError(ex)
         return 0
 
@@ -97,7 +109,9 @@ class ModbusClient:
             sent += self.write_register(name, value)
 
         if sent == 0:
-            raise UnknownCommandError(name)
+            ex = UnknownCommandError(name)
+            self.error_handler.publish(ex)
+            raise ex
 
 
 def _build_register_payload(holding_register: HoldingRegister, value):

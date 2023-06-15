@@ -10,6 +10,7 @@ Remote Commands Handler is a Python application that handles remote commands via
 - Send corresponding commands to a Modbus server.
 - Can handle coil and holding register commands.
 - Configuration of Modbus settings via a YAML configuration file.
+- Optionally publish error messages to MQTT.
 
 ## Installation
 
@@ -69,6 +70,7 @@ Once `main.py` is running, you can publish JSON payloads to your MQTT broker and
 You will need to modify the `configuration.yaml` file to match your MQTT and Modbus settings.
 
 - Provide the required host and port number for your MQTT broker in the `mqtt_settings` section, as well as the topic to subscribe to, and for your Modbus server in the `modbus_settings` section
+- If you wish to receive error messages via MQTT, set the `error_topic` to an MQTT topic name. Allow for additional levels to be added to the topic when messages are published.
 - The `modbus_mappings` section allows you to configure the coils and holding registers available on your Modbus server
 - Each entry under `coils` and `holding_registers` refers to a space where Modbus will store data. The `name` for each entry will correspond to the `action` of your JSON payloads. The `address` for each entry identifies the relevant location within the Modbus server.
 - For holding registers, you must also specify the `data_type` and `byte_order` for each register.

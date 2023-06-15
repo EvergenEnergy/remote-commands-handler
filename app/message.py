@@ -6,6 +6,7 @@ This module encapsulates the functionality required to read and validate an inco
 from app.exceptions import InvalidMessageError
 import json
 from json import JSONDecodeError
+import logging
 
 
 class CommandMessage:
@@ -26,3 +27,14 @@ class CommandMessage:
             )
         except Exception as ex:
             raise InvalidMessageError(f"Invalid message: {ex}")
+
+
+class ErrorMessage:
+    """Write an object in JSON format."""
+
+    @classmethod
+    def write(cls, message: dict):
+        try:
+            return json.dumps(message)
+        except Exception:
+            logging.error(f"Couldn't write message {message}")

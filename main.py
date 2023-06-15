@@ -26,9 +26,7 @@ import argparse
 import signal
 import sys
 
-import paho.mqtt.client as mqtt
-from pymodbus.client import ModbusTcpClient
-
+from app.error_handler import ErrorHandler
 from app.modbus_client import ModbusClient
 from app.mqtt_client import MqttClient
 from app.configuration import Configuration, ModbusSettings, MqttSettings
@@ -70,7 +68,8 @@ def handle_args():
         help="The host address for the MQTT server. Expected to be a string.",
     )
     parser.add_argument(
-        "--mqtt_topic", help="The MQTT topic to subscribe to. Expected to be a string."
+        "--mqtt_command_topic",
+        help="The MQTT topic to subscribe to. Expected to be a string.",
     )
 
     return parser.parse_args()
@@ -86,7 +85,8 @@ def get_configuration_with_overrides(args):
     mqtt_settings_with_override = MqttSettings(
         args_as_dict.get("mqtt_host") or mqtt_settings.host,
         args_as_dict.get("mqtt_port") or mqtt_settings.port,
-        args_as_dict.get("mqtt_topic") or mqtt_settings.command_topic,
+        args_as_dict.get("mqtt_command_topic") or mqtt_settings.command_topic,
+        mqtt_settings.error_topic,
     )
 
     modbus_settings_with_override = ModbusSettings(
@@ -102,21 +102,26 @@ def get_configuration_with_overrides(args):
     )
 
 
-def setup_modbus_client(configuration: Configuration) -> ModbusClient:
+def setup_error_handler(configuration: Configuration) -> ErrorHandler:
+    return ErrorHandler.from_config(configuration)
+
+
+def setup_modbus_client(
+    configuration: Configuration, error_handler: ErrorHandler
+) -> ModbusClient:
     return ModbusClient(
         configuration,
-        ModbusTcpClient(
-            configuration.get_modbus_settings().host,
-            port=configuration.get_modbus_settings().port,
-        ),
+        error_handler,
     )
 
 
-def setup_mqtt_client(configuration: Configuration) -> MqttClient:
+def setup_mqtt_client(
+    configuration: Configuration, error_handler: ErrorHandler
+) -> MqttClient:
     return MqttClient(
         configuration.get_mqtt_settings().port,
         configuration.get_mqtt_settings().host,
-        mqtt.Client(),
+        error_handler,
     )
 
 
@@ -137,8 +142,10 @@ def main():
         logging.error("Error retrieving configuration, exiting")
         sys.exit(1)
 
-    modbus_client = setup_modbus_client(configuration)
-    mqtt_client = setup_mqtt_client(configuration)
+    error_handler = setup_error_handler(configuration)
+    modbus_client = setup_modbus_client(configuration, error_handler)
+    mqtt_client = setup_mqtt_client(configuration, error_handler)
+    error_handler.client = mqtt_client
 
     mqtt_client.subscribe_topics([configuration.mqtt_settings.command_topic])
 

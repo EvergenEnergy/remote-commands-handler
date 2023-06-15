@@ -27,6 +27,7 @@ import paho.mqtt.client as mqtt
 
 from app.message import CommandMessage
 from app.exceptions import InvalidMessageError
+from app.error_handler import ErrorHandler
 
 
 def _decode_message(message):
@@ -36,10 +37,17 @@ def _decode_message(message):
 class MqttClient:
     _client: mqtt.Client
 
-    def __init__(self, port: int, host: str, client: mqtt.Client) -> None:
-        self._client = client
+    def __init__(
+        self,
+        port: int,
+        host: str,
+        error_handler: ErrorHandler,
+        client: mqtt.Client = None,
+    ) -> None:
+        self._client = client or mqtt.Client()
         self.host = host
         self.port = port
+        self.error_handler = error_handler
         self.on_message_callbacks = []
         self.topics = []
 
@@ -64,9 +72,9 @@ class MqttClient:
         try:
             self._client.connect(self.host, self.port)
         except OSError as e:
-            raise OSError(
-                f"Cannot assign requested address: {self.host}:{self.port}"
-            ) from e
+            ex = OSError(f"Cannot assign requested address: {self.host}:{self.port}")
+            self.error_handler.publish(ex)
+            raise ex from e
 
         logging.info("Service started")
         self._client.loop_forever()
@@ -79,6 +87,7 @@ class MqttClient:
                     logging.info("Subscribing to topic: %s", topic)
                     client.subscribe(topic)
             else:
+                self.error_handler.publish(RuntimeError("Connection failed"))
                 logging.error("Connection failed")
 
         return inner
@@ -90,6 +99,7 @@ class MqttClient:
                 msg_obj = CommandMessage.read(msg_str)
             except InvalidMessageError as ex:
                 logging.error(ex)
+                self.error_handler.publish(ex)
                 return
             for callback in self.on_message_callbacks:
                 callback(msg_obj)
