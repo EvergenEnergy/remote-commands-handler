@@ -202,7 +202,7 @@ def _validate_config(config: dict):
             ), "The error topic must be a valid MQTT topic name"
 
             assert (
-                error_topic.count("#") == 0
+                error_topic.count("#") + error_topic.count("+") == 0
             ), "The error topic must not contain a wildcard character"
 
         mapping = config["modbus_mapping"]

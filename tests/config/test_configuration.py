@@ -170,10 +170,11 @@ def test_validate_config_data():
         assert False
 
     error_topic_wildcard = deepcopy(config)
-    error_topic_wildcard["mqtt_settings"]["error_topic"] = "error/#"
-    with pytest.raises(ConfigurationFileInvalidError) as ex:
-        _validate_config(error_topic_wildcard)
-    assert "wildcard" in str(ex.value)
+    for char in ("#", "+"):
+        error_topic_wildcard["mqtt_settings"]["error_topic"] = f"error/{char}/topic"
+        with pytest.raises(ConfigurationFileInvalidError) as ex:
+            _validate_config(error_topic_wildcard)
+        assert "wildcard" in str(ex.value)
 
     for datatype in ("coils", "holding_registers"):
         c = deepcopy(config)
