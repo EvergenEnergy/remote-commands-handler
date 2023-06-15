@@ -2,7 +2,8 @@
 mqtt_settings:
   host: mosquitto
   port: 1883
-  command_topic: commands/#  # The mqtt topic that contains the relevant commands.
+  command_topic: commands/#  # We subscribe to this MQTT topic to receive commands
+  error_topic: error  # If this has a value, we publish error messages under this MQTT topic
 modbus_settings:
   host: pymodbus
   port: 5020
