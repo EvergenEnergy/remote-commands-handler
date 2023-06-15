@@ -26,6 +26,12 @@ class ErrorHandler:
         self.client = None
 
     def publish(self, exception: Exception):
-        if not self.active:
+        if not self.active or not self.client:
             return
-        logging.info(f"Publishing an exception: {exception}")
+        # TODO: consider whether it's better to pass category/message as separate params
+        # rather than actual exception object
+        payload = {"category": str(exception.__class__), "message": str(exception)}
+        # TODO: look for device ID in environment var
+        topic = f"{self.topic}/deviceid"
+        logging.info(f"Publishing an exception: {exception} to topic {topic}")
+        self.client.publish(topic, payload)

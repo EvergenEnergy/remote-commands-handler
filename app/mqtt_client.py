@@ -25,7 +25,7 @@ from typing import Callable
 
 import paho.mqtt.client as mqtt
 
-from app.message import CommandMessage
+from app.message import CommandMessage, ErrorMessage
 from app.exceptions import InvalidMessageError
 from app.error_handler import ErrorHandler
 
@@ -68,6 +68,7 @@ class MqttClient:
         """
         self._client.on_connect = self._on_connect()
         self._client.on_message = self._on_message()
+        self._client.on_publish = self._on_publish()
 
         try:
             self._client.connect(self.host, self.port)
@@ -103,5 +104,14 @@ class MqttClient:
                 return
             for callback in self.on_message_callbacks:
                 callback(msg_obj)
+
+        return inner
+
+    def publish(self, topic, payload):
+        self._client.publish(topic, ErrorMessage.write(payload), qos=1)
+
+    def _on_publish(self):
+        def inner(_client, _userdata, message_id):
+            logging.debug(f"Published message with id {message_id}")
 
         return inner
