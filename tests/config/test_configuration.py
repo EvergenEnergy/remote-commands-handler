@@ -14,6 +14,7 @@ from app.configuration import (
     MqttSettings,
     path_to_yaml_data,
     _validate_config,
+    _mqtt_settings_from_yaml_data,
 )
 from app.exceptions import ConfigurationFileNotFoundError, ConfigurationFileInvalidError
 
@@ -82,6 +83,19 @@ def test_able_to_get_mqtt_settings():
     assert mqtt_settings.port == 9000
     assert mqtt_settings.host == "mqtt.host"
     assert mqtt_settings.command_topic == "commands/#"
+    assert mqtt_settings.pub_errors is True
+
+    config = path_to_yaml_data(_config_path())
+
+    no_err_topic = deepcopy(config)
+    del no_err_topic["mqtt_settings"]["error_topic"]
+    new_mqtt_settings = _mqtt_settings_from_yaml_data(no_err_topic)
+    assert new_mqtt_settings.pub_errors is False
+
+    empty_err_topic = deepcopy(config)
+    empty_err_topic["mqtt_settings"]["error_topic"] = ""
+    new_mqtt_settings = _mqtt_settings_from_yaml_data(empty_err_topic)
+    assert new_mqtt_settings.pub_errors is False
 
 
 def test_able_to_get_modbus_settings():
@@ -147,6 +161,20 @@ def test_validate_config_data():
                 _validate_config(c)
             assert "host" in str(ex.value)
             assert key in str(ex.value)
+
+    without_error_topic = deepcopy(config)
+    del without_error_topic["mqtt_settings"]["error_topic"]
+    try:
+        _validate_config(without_error_topic)
+    except Exception:
+        assert False
+
+    error_topic_wildcard = deepcopy(config)
+    for char in ("#", "+"):
+        error_topic_wildcard["mqtt_settings"]["error_topic"] = f"error/{char}/topic"
+        with pytest.raises(ConfigurationFileInvalidError) as ex:
+            _validate_config(error_topic_wildcard)
+        assert "wildcard" in str(ex.value)
 
     for datatype in ("coils", "holding_registers"):
         c = deepcopy(config)

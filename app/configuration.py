@@ -49,6 +49,11 @@ class MqttSettings:
     host: str
     port: int
     command_topic: str
+    error_topic: str = None
+    pub_errors: bool = False
+
+    def __post_init__(self):
+        self.pub_errors = self.error_topic is not None and len(self.error_topic) > 0
 
 
 @dataclass
@@ -132,7 +137,10 @@ def _modbus_settings_from_yaml_data(data) -> ModbusSettings:
 def _mqtt_settings_from_yaml_data(data) -> MqttSettings:
     mqtt_settings = data["mqtt_settings"]
     return MqttSettings(
-        mqtt_settings["host"], mqtt_settings["port"], mqtt_settings["command_topic"]
+        mqtt_settings["host"],
+        mqtt_settings["port"],
+        mqtt_settings["command_topic"],
+        mqtt_settings.get("error_topic"),
     )
 
 
@@ -179,16 +187,23 @@ def _validate_config(config: dict):
                     item in config[req_key] and config[req_key][item]
                 ), f"No {item!r} provided in {req_key!r} section of configuration"
 
-        def _is_valid_command_topic(topic):
+        def _is_valid_mqtt_topic(topic):
             # Command topic must be str, must not have more than 7 levels
-            return (
-                isinstance(config["mqtt_settings"]["command_topic"], str)
-                and config["mqtt_settings"]["command_topic"].count("/") <= 7  # noqa
-            )
+            return isinstance(topic, str) and topic.count("/") <= 7
 
-        assert _is_valid_command_topic(
+        assert _is_valid_mqtt_topic(
             config["mqtt_settings"]["command_topic"]
         ), "The command topic must be a valid MQTT topic name"
+
+        error_topic = config["mqtt_settings"].get("error_topic")
+        if error_topic:
+            assert _is_valid_mqtt_topic(
+                error_topic
+            ), "The error topic must be a valid MQTT topic name"
+
+            assert (
+                error_topic.count("#") + error_topic.count("+") == 0
+            ), "The error topic must not contain a wildcard character"
 
         mapping = config["modbus_mapping"]
         keys_defined = sum(
