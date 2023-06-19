@@ -3,35 +3,35 @@
 
 """
 import logging
-import paho.mqtt.client as mqtt
 
 from app.configuration import Configuration
 
 
 class ErrorHandler:
-    _client: mqtt.Client
+    class Category:
+        MODBUS_ERROR = "ModbusError"
+        MQTT_ERROR = "MQTTError"
+        INVALID_MESSAGE = "InvalidMessage"
+        UNKNOWN_COMMAND = "UnknownCommand"
+        RUNTIME_ERROR = "RuntimeError"
 
     @classmethod
     def from_config(cls, config: Configuration):
         mqtt = config.get_mqtt_settings()
         if mqtt.pub_errors:
-            return cls(mqtt.pub_errors, mqtt.error_topic, mqtt.port, mqtt.host)
-        return cls(False, None, None, None)
+            return cls(mqtt.pub_errors, mqtt.error_topic)
+        return cls(False, None)
 
-    def __init__(self, active: bool, topic: str, port: int, host: str) -> None:
+    def __init__(self, active: bool, topic: str) -> None:
         self.active = active
         self.topic = topic
-        self.host = host
-        self.port = port
         self.client = None
 
-    def publish(self, exception: Exception):
+    def publish(self, category: Category, message: str):
         if not self.active or not self.client:
             return
-        # TODO: consider whether it's better to pass category/message as separate params
-        # rather than actual exception object
-        payload = {"category": str(exception.__class__), "message": str(exception)}
+        payload = {"category": category, "message": message}
         # TODO: look for device ID in environment var
         topic = f"{self.topic}/deviceid"
-        logging.info(f"Publishing an exception: {exception} to topic {topic}")
+        logging.debug(f"Publishing a {category} error to topic {topic}: {message}")
         self.client.publish(topic, payload)

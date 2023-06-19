@@ -36,5 +36,6 @@ class ErrorMessage:
     def write(cls, message: dict):
         try:
             return json.dumps(message)
-        except Exception:
+        except Exception as ex:
             logging.error(f"Couldn't write message {message}")
+            raise InvalidMessageError(f"JSON object cannot be serialised: {ex}")

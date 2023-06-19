@@ -74,7 +74,7 @@ class MqttClient:
             self._client.connect(self.host, self.port)
         except OSError as e:
             ex = OSError(f"Cannot assign requested address: {self.host}:{self.port}")
-            self.error_handler.publish(ex)
+            self.error_handler.publish(self.error_handler.Category.MQTT_ERROR, str(ex))
             raise ex from e
 
         logging.info("Service started")
@@ -88,7 +88,9 @@ class MqttClient:
                     logging.info("Subscribing to topic: %s", topic)
                     client.subscribe(topic)
             else:
-                self.error_handler.publish(RuntimeError("Connection failed"))
+                self.error_handler.publish(
+                    self.error_handler.Category.MQTT_ERROR, "Connection failed"
+                )
                 logging.error("Connection failed")
 
         return inner
@@ -100,7 +102,9 @@ class MqttClient:
                 msg_obj = CommandMessage.read(msg_str)
             except InvalidMessageError as ex:
                 logging.error(ex)
-                self.error_handler.publish(ex)
+                self.error_handler.publish(
+                    self.error_handler.Category.INVALID_MESSAGE, str(ex)
+                )
                 return
             for callback in self.on_message_callbacks:
                 callback(msg_obj)

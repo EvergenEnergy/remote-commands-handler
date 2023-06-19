@@ -1,6 +1,7 @@
 """Tests for the CommandMessage and ErrorMessage modules."""
 
 import pytest
+from datetime import datetime
 import json
 from app.message import CommandMessage, ErrorMessage
 from app.exceptions import InvalidMessageError
@@ -50,3 +51,20 @@ def test_bad_cmd_message_unhandled_exception(monkeypatch):
             _ = CommandMessage.read("")
         assert "Invalid message" in str(ex.value)
         assert ex.type == InvalidMessageError
+
+
+def test_good_err_message():
+    json_obj = {"category": "RuntimeError", "message": "oops"}
+    json_str = ErrorMessage.write(json_obj)
+    assert json_str == """{"category": "RuntimeError", "message": "oops"}"""
+
+
+def test_bad_err_message():
+    json_obj = {
+        "category": "RuntimeError",
+        "message": "something went wrong",
+        "timestamp": datetime.now(),
+    }
+    with pytest.raises(InvalidMessageError) as ex:
+        _ = ErrorMessage.write(json_obj)
+    assert "serialised" in str(ex)

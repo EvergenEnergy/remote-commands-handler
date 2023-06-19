@@ -27,10 +27,10 @@ def test_no_error_handler():
     )
     error = ErrorHandler.from_config(config)
     assert error.active is False
-    error.publish(RuntimeError("foo"))
+    error.publish(error.Category.UNKNOWN_COMMAND, "foo")
 
 
 def test_publish_error():
     config = Configuration.from_file(example_config_path())
     error = ErrorHandler.from_config(config)
-    error.publish(RuntimeError("oops"))
+    error.publish(error.Category.UNKNOWN_COMMAND, "oops")

@@ -58,7 +58,9 @@ class ModbusClient:
                 logging.debug(f"wrote to coil {name}, value: {value!r}")
                 return len(value)
             except ModbusException as ex:
-                self.error_handler.publish(ex)
+                self.error_handler.publish(
+                    self.error_handler.Category.MODBUS_ERROR, str(ex)
+                )
                 raise ModbusClientError(ex)
         return 0
 
@@ -72,7 +74,9 @@ class ModbusClient:
                 logging.debug(f"wrote to coil {name}, value: {value!r}")
                 return 1
             except ModbusException as ex:
-                self.error_handler.publish(ex)
+                self.error_handler.publish(
+                    self.error_handler.Category.MODBUS_ERROR, str(ex)
+                )
                 raise ModbusClientError(ex)
         return 0
 
@@ -82,7 +86,9 @@ class ModbusClient:
             try:
                 payload = _build_register_payload(holding_register_configuration, value)
             except Exception as ex:
-                self.error_handler.publish(ex)
+                self.error_handler.publish(
+                    self.error_handler.Category.INVALID_MESSAGE, str(ex)
+                )
                 raise InvalidMessageError(ex)
             try:
                 self._client.connect()
@@ -93,7 +99,9 @@ class ModbusClient:
                 logging.debug(f"wrote to register {name}, value: {value!r}")
                 return 1
             except ModbusException as ex:
-                self.error_handler.publish(ex)
+                self.error_handler.publish(
+                    self.error_handler.Category.MODBUS_ERROR, str(ex)
+                )
                 raise ModbusClientError(ex)
         return 0
 
@@ -110,7 +118,9 @@ class ModbusClient:
 
         if sent == 0:
             ex = UnknownCommandError(name)
-            self.error_handler.publish(ex)
+            self.error_handler.publish(
+                self.error_handler.Category.UNKNOWN_COMMAND, str(ex)
+            )
             raise ex
 
 
