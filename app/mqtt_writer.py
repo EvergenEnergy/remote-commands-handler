@@ -12,7 +12,7 @@ from app.message import ErrorMessage
 from app.mqtt_client import MqttClient
 
 
-class MqttWriter(MqttClient):
+class MqttWriter:
     _client: mqtt.Client
 
     def __init__(
@@ -21,12 +21,12 @@ class MqttWriter(MqttClient):
         host: str,
         client: mqtt.Client = None,
     ) -> None:
-        super().__init__(host, port, client)
-        self._client.on_publish = self._on_publish()
+        self.connector = MqttClient(host, port, client)
+        self.connector._client.on_publish = self._on_publish()
 
     def publish(self, topic, payload):
-        if self.connect():
-            self._client.publish(topic, ErrorMessage.write(payload), qos=1)
+        if self.connector.connect():
+            self.connector._client.publish(topic, ErrorMessage.write(payload), qos=1)
             return
         logging.error(f"Failed to publish to {topic}: {payload}")
 

@@ -19,9 +19,7 @@ def _decode_message(message):
     return message.payload.decode()
 
 
-class MqttReader(MqttClient):
-    _client: mqtt.Client
-
+class MqttReader:
     def __init__(
         self,
         port: int,
@@ -30,29 +28,29 @@ class MqttReader(MqttClient):
         error_handler: ErrorHandler,
         client: mqtt.Client = None,
     ) -> None:
-        super().__init__(host, port, client)
         self.error_handler = error_handler
         self.on_message_callbacks = []
         self.topics = topics
+        self.connector = MqttClient(host, port, client)
 
     def add_message_callback(self, f: Callable[[str], None]):
         self.on_message_callbacks.append(f)
 
     def stop(self) -> None:
-        self._client.disconnect()
+        self.connector._client.disconnect()
 
     def run(self) -> None:
         """Run the MQTT client.
 
         This method blocks the execution and keeps the client connected to the MQTT broker.
         """
-        self._client.on_connect = self._on_connect()
-        self._client.on_message = self._on_message()
+        self.connector._client.on_connect = self._on_connect()
+        self.connector._client.on_message = self._on_message()
 
-        self.connect()
+        self.connector.connect()
 
         logging.info("Service started")
-        self._client.loop_forever()
+        self.connector._client.loop_forever()
 
     def _on_message(self):
         def inner(_client, _userdata, message):
