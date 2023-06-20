@@ -6,6 +6,7 @@ import logging
 
 from app.configuration import Configuration
 from app.mqtt_writer import MqttWriter
+from app.exceptions import InvalidArgumentError
 import paho.mqtt.client as mqtt
 
 
@@ -20,35 +21,38 @@ class ErrorHandler:
     def from_config(cls, config: Configuration, mqtt_client: mqtt.Client = None):
         mqtt_settings = config.get_mqtt_settings()
         if mqtt_settings.pub_errors:
-            return cls(
-                mqtt_settings.pub_errors,
+            if not mqtt_client:
+                raise InvalidArgumentError(
+                    "ErrorHandler requires MQTT settings and client when enabled"
+                )
+            return MQTTErrorHandler(
                 mqtt_settings.error_topic,
                 mqtt_settings.host,
                 mqtt_settings.port,
                 mqtt_client,
             )
-        return cls(False, None)
+        return cls(False)
 
     def __init__(
         self,
         active: bool,
-        topic: str = None,
-        host: str = None,
-        port: int = None,
-        mqtt_client: mqtt.Client = None,
     ) -> None:
         self.active = active
+
+    def publish(self, category: Category, message):
+        logging.error(f"{category}: {message}")
+
+
+class MQTTErrorHandler(ErrorHandler):
+    def __init__(self, topic: str, host: str, port: int, client: mqtt.Client) -> None:
+        super().__init__(True)
         self.topic = topic
         self.host = host
         self.port = port
+        self.client = MqttWriter(self.host, self.port, client)
 
-        if self.active:
-            self.client = MqttWriter(self.port, self.host, mqtt_client)
-
-    def publish(self, category: Category, message: str):
+    def publish(self, category: ErrorHandler.Category, message: str):
         logging.error(f"{category}: {message}")
-        if not self.active or not self.client:
-            return
         payload = {"category": category, "message": message}
         # TODO: look for device ID in environment var
         topic = f"{self.topic}/deviceid"
