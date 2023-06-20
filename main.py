@@ -25,6 +25,7 @@ import os
 import argparse
 import signal
 import sys
+import paho.mqtt.client as mqtt
 
 from app.error_handler import ErrorHandler
 from app.modbus_client import ModbusClient
@@ -102,8 +103,10 @@ def get_configuration_with_overrides(args):
     )
 
 
-def setup_error_handler(configuration: Configuration) -> ErrorHandler:
-    return ErrorHandler.from_config(configuration)
+def setup_error_handler(
+    configuration: Configuration, mqtt_client: mqtt.Client
+) -> ErrorHandler:
+    return ErrorHandler.from_config(configuration, mqtt_client)
 
 
 def setup_modbus_client(
@@ -116,12 +119,13 @@ def setup_modbus_client(
 
 
 def setup_mqtt_client(
-    configuration: Configuration, error_handler: ErrorHandler
+    configuration: Configuration, mqtt_client: mqtt.Client, error_handler: ErrorHandler
 ) -> MqttReader:
     return MqttReader(
-        configuration.get_mqtt_settings().port,
         configuration.get_mqtt_settings().host,
+        configuration.get_mqtt_settings().port,
         [configuration.mqtt_settings.command_topic],
+        mqtt_client,
         error_handler,
     )
 
@@ -143,9 +147,10 @@ def main():
         logging.error("Error retrieving configuration, exiting")
         sys.exit(1)
 
-    error_handler = setup_error_handler(configuration)
+    mqtt_client = mqtt.Client()
+    error_handler = setup_error_handler(configuration, mqtt_client)
     modbus_client = setup_modbus_client(configuration, error_handler)
-    mqtt_client = setup_mqtt_client(configuration, error_handler)
+    mqtt_reader = setup_mqtt_client(configuration, mqtt_client, error_handler)
 
     def write_to_modbus(message):
         try:
@@ -153,17 +158,17 @@ def main():
         except Exception as e:
             logging.error(f"Error writing to modbus: {e}")
 
-    mqtt_client.add_message_callback(write_to_modbus)
+    mqtt_reader.add_message_callback(write_to_modbus)
 
     def signal_handler(signum, _):
         logging.info(f"Received signal {signum}, shutting down...")
-        mqtt_client.stop()
+        mqtt_reader.stop()
         sys.exit(0)
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    mqtt_client.run()
+    mqtt_reader.run()
 
 
 if __name__ == "__main__":

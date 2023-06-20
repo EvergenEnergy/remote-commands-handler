@@ -12,7 +12,6 @@ import paho.mqtt.client as mqtt
 from app.message import CommandMessage
 from app.exceptions import InvalidMessageError
 from app.error_handler import ErrorHandler
-from app.mqtt_client import MqttClient
 
 
 def _decode_message(message):
@@ -22,35 +21,45 @@ def _decode_message(message):
 class MqttReader:
     def __init__(
         self,
-        port: int,
         host: str,
+        port: int,
         topics: list[str],
+        client: mqtt.Client,
         error_handler: ErrorHandler,
-        client: mqtt.Client = None,
     ) -> None:
+        self.host = host
+        self.port = port
         self.error_handler = error_handler
         self.on_message_callbacks = []
         self.topics = topics
-        self.connector = MqttClient(host, port, client)
+        self._client = client
 
     def add_message_callback(self, f: Callable[[str], None]):
         self.on_message_callbacks.append(f)
 
+    def connect(self) -> None:
+        try:
+            self._client.connect(self.host, self.port)
+            return True
+        except OSError as e:
+            ex = OSError(f"Cannot assign requested address: {self.host}:{self.port}")
+            raise ex from e
+
     def stop(self) -> None:
-        self.connector._client.disconnect()
+        self._client.disconnect()
 
     def run(self) -> None:
         """Run the MQTT client.
 
         This method blocks the execution and keeps the client connected to the MQTT broker.
         """
-        self.connector._client.on_connect = self._on_connect()
-        self.connector._client.on_message = self._on_message()
+        self._client.on_connect = self._on_connect()
+        self._client.on_message = self._on_message()
 
-        self.connector.connect()
+        self.connect()
 
         logging.info("Service started")
-        self.connector._client.loop_forever()
+        self._client.loop_forever()
 
     def _on_message(self):
         def inner(_client, _userdata, message):

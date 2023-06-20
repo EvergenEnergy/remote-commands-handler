@@ -9,24 +9,28 @@ import logging
 import paho.mqtt.client as mqtt
 
 from app.message import ErrorMessage
-from app.mqtt_client import MqttClient
 
 
 class MqttWriter:
     _client: mqtt.Client
 
-    def __init__(
-        self,
-        port: int,
-        host: str,
-        client: mqtt.Client = None,
-    ) -> None:
-        self.connector = MqttClient(host, port, client)
-        self.connector._client.on_publish = self._on_publish()
+    def __init__(self, host: str, port: int, client: mqtt.Client) -> None:
+        self.host = host
+        self.port = port
+        self._client = client
+        self._client.on_publish = self._on_publish()
+
+    def connect(self) -> None:
+        try:
+            self._client.connect(self.host, self.port)
+            return True
+        except OSError as e:
+            ex = OSError(f"Cannot assign requested address: {self.host}:{self.port}")
+            raise ex from e
 
     def publish(self, topic, payload):
-        if self.connector.connect():
-            self.connector._client.publish(topic, ErrorMessage.write(payload), qos=1)
+        if self.connect():
+            self._client.publish(topic, ErrorMessage.write(payload), qos=1)
             return
         logging.error(f"Failed to publish to {topic}: {payload}")
 
