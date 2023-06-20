@@ -1,5 +1,7 @@
 from app.error_handler import ErrorHandler
 from app.configuration import Configuration, _mqtt_settings_from_yaml_data
+import paho.mqtt.client as mqtt
+from unittest.mock import MagicMock
 
 
 def example_config_path():
@@ -31,6 +33,7 @@ def test_no_error_handler():
 
 
 def test_publish_error():
+    mock_mqtt_client = MagicMock(spec=mqtt.Client)
     config = Configuration.from_file(example_config_path())
-    error = ErrorHandler.from_config(config)
+    error = ErrorHandler.from_config(config, mock_mqtt_client)
     error.publish(error.Category.UNKNOWN_COMMAND, "oops")

@@ -1,19 +1,19 @@
-"""Unit tests for the MqttClient class in the app.mqtt_client module."""
+"""Unit tests for the MqttReader class in the app.mqtt_reader module."""
 
 from unittest.mock import MagicMock, Mock
 import paho.mqtt.client as mqtt
 from paho.mqtt.client import MQTTMessage
-from app.mqtt_client import MqttClient
+from app.mqtt_reader import MqttReader
 from app.error_handler import ErrorHandler
 import pytest
 import json
 
 
-class TestMqttClient:
+class TestMqttReader:
     def setup_class(self):
         self.mock_mqtt_client = MagicMock(spec=mqtt.Client)
         self.mock_error_handler = MagicMock(spec=ErrorHandler)
-        self.mqtt_client = MqttClient(
+        self.mqtt_client = MqttReader(
             port=1883,
             host="localhost",
             client=self.mock_mqtt_client,

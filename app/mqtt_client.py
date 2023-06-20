@@ -21,101 +21,38 @@ Note:
 """
 
 import logging
-from typing import Callable
+from abc import ABC
 
 import paho.mqtt.client as mqtt
 
-from app.message import CommandMessage, ErrorMessage
-from app.exceptions import InvalidMessageError
-from app.error_handler import ErrorHandler
 
-
-def _decode_message(message):
-    return message.payload.decode()
-
-
-class MqttClient:
+class MqttClient(ABC):
     _client: mqtt.Client
 
     def __init__(
         self,
-        port: int,
         host: str,
-        error_handler: ErrorHandler,
+        port: int,
         client: mqtt.Client = None,
-    ) -> None:
-        self._client = client or mqtt.Client()
+    ):
         self.host = host
         self.port = port
-        self.error_handler = error_handler
-        self.on_message_callbacks = []
-        self.topics = []
+        self._client = client or mqtt.Client()
 
-    def subscribe_topics(self, topics: list[str]):
-        for topic in topics:
-            self.topics.append(topic)
-
-    def add_message_callback(self, f: Callable[[str], None]):
-        self.on_message_callbacks.append(f)
-
-    def stop(self) -> None:
-        self._client.disconnect()
-
-    def run(self) -> None:
-        """Run the MQTT client.
-
-        This method blocks the execution and keeps the client connected to the MQTT broker.
-        """
-        self._client.on_connect = self._on_connect()
-        self._client.on_message = self._on_message()
-        self._client.on_publish = self._on_publish()
-
+    def connect(self) -> None:
         try:
+            self._client.on_connect = self._on_connect()
             self._client.connect(self.host, self.port)
+            return True
         except OSError as e:
             ex = OSError(f"Cannot assign requested address: {self.host}:{self.port}")
-            self.error_handler.publish(self.error_handler.Category.MQTT_ERROR, str(ex))
             raise ex from e
-
-        logging.info("Service started")
-        self._client.loop_forever()
 
     def _on_connect(self):
         def inner(client, _userdata, _flags, rc):
             if rc == 0:
                 logging.info("Connected to MQTT broker")
-                for topic in self.topics:
-                    logging.info("Subscribing to topic: %s", topic)
-                    client.subscribe(topic)
             else:
-                self.error_handler.publish(
-                    self.error_handler.Category.MQTT_ERROR, "Connection failed"
-                )
                 logging.error("Connection failed")
-
-        return inner
-
-    def _on_message(self):
-        def inner(_client, _userdata, message):
-            try:
-                msg_str = _decode_message(message)
-                msg_obj = CommandMessage.read(msg_str)
-            except InvalidMessageError as ex:
-                logging.error(ex)
-                self.error_handler.publish(
-                    self.error_handler.Category.INVALID_MESSAGE, str(ex)
-                )
-                return
-            for callback in self.on_message_callbacks:
-                callback(msg_obj)
-
-        return inner
-
-    def publish(self, topic, payload):
-        self._client.publish(topic, ErrorMessage.write(payload), qos=1)
-
-    def _on_publish(self):
-        def inner(_client, _userdata, message_id):
-            logging.debug(f"Published message with id {message_id}")
 
         return inner

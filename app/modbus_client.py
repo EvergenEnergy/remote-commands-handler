@@ -121,7 +121,6 @@ class ModbusClient:
             self.error_handler.publish(
                 self.error_handler.Category.UNKNOWN_COMMAND, str(ex)
             )
-            raise ex
 
 
 def _build_register_payload(holding_register: HoldingRegister, value):
