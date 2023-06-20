@@ -16,14 +16,12 @@ class TestMqttReader:
         self.mqtt_client = MqttReader(
             port=1883,
             host="localhost",
+            topics=["some_topic"],
             client=self.mock_mqtt_client,
             error_handler=self.mock_error_handler,
         )
 
     def test_run(self):
-        topic_list = ["foo", "baa"]
-        self.mqtt_client.subscribe_topics(topic_list)
-
         mock_modbus = Mock()
         self.mqtt_client.add_message_callback(mock_modbus.message_callback)
 
@@ -41,7 +39,7 @@ class TestMqttReader:
         # Verify that connect was called with the correct parameters
         self.mock_mqtt_client.connect.assert_called_with("localhost", 1883)
         # and it called the callback which subscribed to our topics
-        self.mock_mqtt_client.subscribe.call_count == len(topic_list)
+        self.mock_mqtt_client.subscribe.call_count == 1
 
         # Pretend that the MQTT broker received a message and our callback is called
         json_obj = {"action": "test_coil", "value": True}

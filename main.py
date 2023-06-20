@@ -121,6 +121,7 @@ def setup_mqtt_client(
     return MqttReader(
         configuration.get_mqtt_settings().port,
         configuration.get_mqtt_settings().host,
+        [configuration.mqtt_settings.command_topic],
         error_handler,
     )
 
@@ -145,8 +146,6 @@ def main():
     error_handler = setup_error_handler(configuration)
     modbus_client = setup_modbus_client(configuration, error_handler)
     mqtt_client = setup_mqtt_client(configuration, error_handler)
-
-    mqtt_client.subscribe_topics([configuration.mqtt_settings.command_topic])
 
     def write_to_modbus(message):
         try:

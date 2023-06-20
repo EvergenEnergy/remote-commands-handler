@@ -26,17 +26,14 @@ class MqttReader(MqttClient):
         self,
         port: int,
         host: str,
+        topics: list[str],
         error_handler: ErrorHandler,
         client: mqtt.Client = None,
     ) -> None:
         super().__init__(host, port, client)
         self.error_handler = error_handler
         self.on_message_callbacks = []
-        self.topics = []
-
-    def subscribe_topics(self, topics: list[str]):
-        for topic in topics:
-            self.topics.append(topic)
+        self.topics = topics
 
     def add_message_callback(self, f: Callable[[str], None]):
         self.on_message_callbacks.append(f)
