@@ -31,22 +31,36 @@ class ErrorHandler:
                 mqtt_settings.host,
                 mqtt_settings.port,
                 mqtt_client,
+                config.get_env().site_name,
+                config.get_env().serial_number,
             )
-        return cls(False)
+        return cls(False, config.get_env().site_name, config.get_env().serial_number)
 
     def __init__(
         self,
         active: bool,
+        site_name: str,
+        serial_number: str,
     ) -> None:
         self.active = active
+        self.site_name = site_name
+        self.serial_number = serial_number
 
     def publish(self, category: Category, message):
         logging.error(f"{category}: {message}")
 
 
 class MQTTErrorHandler(ErrorHandler):
-    def __init__(self, topic: str, host: str, port: int, client: mqtt.Client) -> None:
-        super().__init__(True)
+    def __init__(
+        self,
+        topic: str,
+        host: str,
+        port: int,
+        client: mqtt.Client,
+        site_name: str,
+        serial_number: str,
+    ) -> None:
+        super().__init__(True, site_name, serial_number)
         self.topic = topic
         self.host = host
         self.port = port
@@ -55,7 +69,6 @@ class MQTTErrorHandler(ErrorHandler):
     def publish(self, category: ErrorHandler.Category, message: str):
         logging.error(f"{category}: {message}")
         payload = ErrorMessage.write({"category": category, "message": message})
-        # TODO: look for device ID in environment var
-        topic = f"{self.topic}/deviceid"
+        topic = f"{self.topic}/{self.site_name}/{self.serial_number}"
         logging.debug(f"Publishing a {category} error to topic {topic}: {message}")
         self.client.publish(topic, payload)

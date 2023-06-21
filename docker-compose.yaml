@@ -52,7 +52,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile  # Replace with the actual name of your Dockerfile if different
-    environment: [CONFIGURATION_PATH=/config/configuration.yaml]
+    environment:
+      - CONFIGURATION_PATH=/config/configuration.yaml
+      - SITE_NAME=testsite
+      - SERIAL_NUMBER=12345
     volumes:
       - ./tests/end-to-end/configuration.yaml:/config/configuration.yaml
     links: [mosquitto, pymodbus]

@@ -142,16 +142,21 @@ def main():
         format="%(asctime)s:%(levelname)s:%(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
-    logging.info("Starting service")
     args = handle_args()
 
     try:
         configuration = get_configuration_with_overrides(args)
-    except (ConfigurationFileNotFoundError, ConfigurationFileInvalidError) as ex:
+    except (
+        ConfigurationFileNotFoundError,
+        ConfigurationFileInvalidError,
+    ) as ex:
         logging.info(ex)
         logging.error("Error retrieving configuration, exiting")
         sys.exit(1)
 
+    logging.info(
+        f"Starting service for site {configuration.get_env().site_name}/{configuration.get_env().serial_number}"
+    )
     error_handler = setup_error_handler(configuration, mqtt.Client())
     modbus_client = setup_modbus_client(configuration, error_handler)
     mqtt_reader = setup_mqtt_client(configuration, mqtt.Client(), error_handler)

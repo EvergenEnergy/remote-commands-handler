@@ -26,7 +26,10 @@ import yaml
 from app.memory_order import MemoryOrder
 
 
-from app.exceptions import ConfigurationFileNotFoundError, ConfigurationFileInvalidError
+from app.exceptions import (
+    ConfigurationFileNotFoundError,
+    ConfigurationFileInvalidError,
+)
 
 
 @dataclass
@@ -62,6 +65,12 @@ class ModbusSettings:
     port: int
 
 
+@dataclass
+class EnvSettings:
+    site_name: str
+    serial_number: int
+
+
 class Configuration:
     def __init__(
         self,
@@ -74,6 +83,14 @@ class Configuration:
         self.holding_register_map = {x.name: x for x in holding_registers}
         self.mqtt_settings = mqtt_settings
         self.modbus_settings = modbus_settings
+        self.env_settings = self._load_env_settings()
+
+    @classmethod
+    def _load_env_settings(cls) -> EnvSettings:
+        return {
+            "site_name": os.getenv("SITE_NAME", ""),
+            "serial_number": os.getenv("SERIAL_NUMBER", ""),
+        }
 
     @classmethod
     def from_file(cls, path: str):
@@ -89,7 +106,7 @@ class Configuration:
             raise ConfigurationFileInvalidError(msg)
 
         try:
-            _validate_config(yaml_data)
+            _validate_yaml_data(yaml_data)
 
             coils = _coils_data_from_yaml_data(yaml_data)
             holding_registers = _holding_register_from_yaml_data(yaml_data)
@@ -122,6 +139,11 @@ class Configuration:
 
     def get_modbus_settings(self) -> ModbusSettings:
         return ModbusSettings(self.modbus_settings.host, self.modbus_settings.port)
+
+    def get_env(self) -> EnvSettings:
+        return EnvSettings(
+            self.env_settings["site_name"], self.env_settings["serial_number"]
+        )
 
 
 def path_to_yaml_data(path):
@@ -171,7 +193,7 @@ def _holding_register_from_yaml_data(data):
     return holding_registers
 
 
-def _validate_config(config: dict):
+def _validate_yaml_data(config: dict):
     required_settings = {
         "mqtt_settings": ["host", "port", "command_topic"],
         "modbus_settings": ["host", "port"],
