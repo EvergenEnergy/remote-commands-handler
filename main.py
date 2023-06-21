@@ -147,10 +147,9 @@ def main():
         logging.error("Error retrieving configuration, exiting")
         sys.exit(1)
 
-    mqtt_client = mqtt.Client()
-    error_handler = setup_error_handler(configuration, mqtt_client)
+    error_handler = setup_error_handler(configuration, mqtt.Client())
     modbus_client = setup_modbus_client(configuration, error_handler)
-    mqtt_reader = setup_mqtt_client(configuration, mqtt_client, error_handler)
+    mqtt_reader = setup_mqtt_client(configuration, mqtt.Client(), error_handler)
 
     def write_to_modbus(message):
         try:
