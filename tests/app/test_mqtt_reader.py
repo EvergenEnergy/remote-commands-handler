@@ -70,7 +70,7 @@ class TestMqttReader:
         self.mock_mqtt_client.connect.side_effect = OSError("could not connect")
         with pytest.raises(OSError) as ex:
             self.mqtt_reader.run()
-        assert "Cannot assign requested" in str(ex.value)
+        assert "Cannot connect to MQTT broker" in str(ex.value)
 
     def test_fail_connect_rc(self, caplog):
         def call_on_connect(*args):

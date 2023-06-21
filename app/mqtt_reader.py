@@ -30,19 +30,19 @@ class MqttReader:
         self.host = host
         self.port = port
         self.error_handler = error_handler
-        self.on_message_callbacks = []
-        self.topics = topics
+        self._on_message_callbacks = []
+        self._topics = topics
         self._client = client
 
     def add_message_callback(self, f: Callable[[str], None]):
-        self.on_message_callbacks.append(f)
+        self._on_message_callbacks.append(f)
 
     def connect(self) -> None:
         try:
             self._client.connect(self.host, self.port)
             return True
         except OSError as e:
-            ex = OSError(f"Cannot assign requested address: {self.host}:{self.port}")
+            ex = OSError(f"Cannot connect to MQTT broker at {self.host}:{self.port}")
             raise ex from e
 
     def stop(self) -> None:
@@ -72,7 +72,7 @@ class MqttReader:
                     self.error_handler.Category.INVALID_MESSAGE, str(ex)
                 )
                 return
-            for callback in self.on_message_callbacks:
+            for callback in self._on_message_callbacks:
                 callback(msg_obj)
 
         return inner
@@ -81,7 +81,7 @@ class MqttReader:
         def inner(client, _userdata, _flags, rc):
             if rc == 0:
                 logging.info("Connected to MQTT broker")
-                for topic in self.topics:
+                for topic in self._topics:
                     logging.info("Subscribing to topic: %s", topic)
                     client.subscribe(topic)
             else:
