@@ -7,6 +7,7 @@ import logging
 from app.configuration import Configuration
 from app.mqtt_writer import MqttWriter
 from app.exceptions import InvalidArgumentError
+from app.message import ErrorMessage
 import paho.mqtt.client as mqtt
 
 
@@ -53,7 +54,7 @@ class MQTTErrorHandler(ErrorHandler):
 
     def publish(self, category: ErrorHandler.Category, message: str):
         logging.error(f"{category}: {message}")
-        payload = {"category": category, "message": message}
+        payload = ErrorMessage.write({"category": category, "message": message})
         # TODO: look for device ID in environment var
         topic = f"{self.topic}/deviceid"
         logging.debug(f"Publishing a {category} error to topic {topic}: {message}")
