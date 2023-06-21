@@ -3,6 +3,7 @@ mqtt_settings:
   host: mosquitto
   port: 1883
   command_topic: commands/#
+  error_topic: error
 modbus_settings:
   host: pymodbus
   port: 5020

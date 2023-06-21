@@ -70,5 +70,5 @@ class MQTTErrorHandler(ErrorHandler):
         logging.error(f"{category}: {message}")
         payload = ErrorMessage.write({"category": category, "message": message})
         topic = f"{self.topic}/{self.site_name}/{self.serial_number}"
-        logging.debug(f"Publishing a {category} error to topic {topic}: {message}")
+        logging.debug(f"Publishing a {category} error to topic {topic!r}: {message}")
         self.client.publish(topic, payload)
