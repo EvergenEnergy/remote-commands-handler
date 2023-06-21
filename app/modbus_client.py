@@ -38,15 +38,12 @@ class ModbusClient:
     def __init__(
         self,
         configuration: Configuration,
+        modbus_client: ModbusTcpClient,
         error_handler: ErrorHandler,
-        modbus_client: ModbusTcpClient = None,
     ) -> None:
         self.configuration = configuration
+        self._client = modbus_client
         self.error_handler = error_handler
-        self._client = modbus_client or ModbusTcpClient(
-            configuration.get_modbus_settings().host,
-            port=configuration.get_modbus_settings().port,
-        )
 
     def write_coils(self, name: str, value: list[bool]):
         coil_configuration = self.configuration.get_coil(name)

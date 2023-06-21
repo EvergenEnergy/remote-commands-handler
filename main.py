@@ -26,6 +26,7 @@ import argparse
 import signal
 import sys
 import paho.mqtt.client as mqtt
+from pymodbus.client import ModbusTcpClient
 
 from app.error_handler import ErrorHandler
 from app.modbus_client import ModbusClient
@@ -114,6 +115,10 @@ def setup_modbus_client(
 ) -> ModbusClient:
     return ModbusClient(
         configuration,
+        ModbusTcpClient(
+            configuration.get_modbus_settings().host,
+            port=configuration.get_modbus_settings().port,
+        ),
         error_handler,
     )
 

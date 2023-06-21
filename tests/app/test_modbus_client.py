@@ -31,8 +31,8 @@ class TestModbusClient:
 
         self.modbus_client = ModbusClient(
             configuration,
+            self.mock_client,
             self.mock_error_handler,
-            modbus_client=self.mock_client,
         )
 
     @pytest.mark.parametrize("coil_value", [False, True])
