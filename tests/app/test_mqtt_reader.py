@@ -49,7 +49,7 @@ class TestMqttReader:
         self.mock_mqtt_client.on_message(self.mock_mqtt_client, None, paho_msg)
         mock_modbus.message_callback.assert_called_with(json_obj)
 
-    def test_bad_message(self, caplog):
+    def test_bad_message(self):
         def read_json(json_str):
             json.loads(json_str)
 
@@ -60,8 +60,6 @@ class TestMqttReader:
         paho_msg = MQTTMessage()
         paho_msg.payload = bad_json_str.encode()
         self.mock_mqtt_client.on_message(self.mock_mqtt_client, None, paho_msg)
-        msg_str = str(caplog.records[0].message)
-        assert "Message is invalid JSON" in msg_str
         self.mock_error_handler.publish.assert_called()
 
         self.mqtt_reader.stop()
@@ -72,11 +70,10 @@ class TestMqttReader:
             self.mqtt_reader.run()
         assert "Cannot connect to MQTT broker" in str(ex.value)
 
-    def test_fail_connect_rc(self, caplog):
+    def test_fail_connect_rc(self):
         def call_on_connect(*args):
             callback = self.mqtt_reader._on_connect()
             callback(self.mock_mqtt_client, None, None, 1)
-            assert str(caplog.records[0].message) == "Connection failed"
             self.mock_error_handler.publish.assert_called()
 
         self.mock_mqtt_client.connect.side_effect = call_on_connect

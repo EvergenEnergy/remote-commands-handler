@@ -6,56 +6,42 @@ import logging
 
 from app.configuration import Configuration
 from app.mqtt_writer import MqttWriter
-from app.exceptions import InvalidArgumentError
 from app.message import ErrorMessage
 import paho.mqtt.client as mqtt
 
 
 class ErrorHandler:
+    _client: mqtt.Client
+
     class Category:
         MODBUS_ERROR = "ModbusError"
         MQTT_ERROR = "MQTTError"
         INVALID_MESSAGE = "InvalidMessage"
         UNKNOWN_COMMAND = "UnknownCommand"
 
-    @classmethod
-    def from_config(cls, config: Configuration, mqtt_client: mqtt.Client = None):
+    def __init__(self, config: Configuration, mqtt_client: mqtt.Client):
         mqtt_settings = config.get_mqtt_settings()
-        if mqtt_settings.pub_errors:
-            if not mqtt_client:
-                raise InvalidArgumentError(
-                    "ErrorHandler requires MQTT settings and client when enabled"
-                )
-            return MQTTErrorHandler(
-                mqtt_settings.error_topic,
-                mqtt_settings.host,
-                mqtt_settings.port,
-                mqtt_client,
-            )
-        return cls(False)
+        self.site_name = config.get_site_settings().site_name
+        self.serial_number = config.get_site_settings().serial_number
+        if not mqtt_settings.pub_errors:
+            self.active = False
+            self.host = None
+            self.port = None
+            self.topic = None
+            self._client = None
+            return
 
-    def __init__(
-        self,
-        active: bool,
-    ) -> None:
-        self.active = active
+        self.active = True
+        self.host = mqtt_settings.host
+        self.port = mqtt_settings.port
+        self.topic = mqtt_settings.error_topic
+        self._client = MqttWriter(self.host, self.port, mqtt_client)
 
-    def publish(self, category: Category, message):
+    def publish(self, category: Category, message: str):
         logging.error(f"{category}: {message}")
-
-
-class MQTTErrorHandler(ErrorHandler):
-    def __init__(self, topic: str, host: str, port: int, client: mqtt.Client) -> None:
-        super().__init__(True)
-        self.topic = topic
-        self.host = host
-        self.port = port
-        self.client = MqttWriter(self.host, self.port, client)
-
-    def publish(self, category: ErrorHandler.Category, message: str):
-        logging.error(f"{category}: {message}")
+        if not self.active:
+            return
         payload = ErrorMessage.write({"category": category, "message": message})
-        # TODO: look for device ID in environment var
-        topic = f"{self.topic}/deviceid"
-        logging.debug(f"Publishing a {category} error to topic {topic}: {message}")
-        self.client.publish(topic, payload)
+        topic = f"{self.topic}/{self.site_name}/{self.serial_number}"
+        logging.info(f"Publishing a {category} error to topic {topic}: {message}")
+        self._client.publish(topic, payload)

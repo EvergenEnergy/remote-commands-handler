@@ -106,7 +106,7 @@ def get_configuration_with_overrides(args):
 
 
 def setup_error_handler(configuration: Configuration) -> ErrorHandler:
-    return ErrorHandler.from_config(configuration, mqtt.Client())
+    return ErrorHandler(configuration, mqtt.Client())
 
 
 def setup_modbus_client(
