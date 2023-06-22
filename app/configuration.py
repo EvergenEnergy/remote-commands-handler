@@ -91,7 +91,7 @@ class Configuration:
 
         try:
             yaml_data = path_to_yaml_data(path)
-            yaml_data["site_settings"] = interpolate_environment_vars(
+            yaml_data["site_settings"] = _interpolate_environment_vars(
                 yaml_data["site_settings"]
             )
         except yaml.YAMLError as exc:
@@ -151,7 +151,7 @@ def path_to_yaml_data(path: str):
         return yaml.safe_load(file)
 
 
-def interpolate_environment_vars(data: dict):
+def _interpolate_environment_vars(data: dict):
     interpolated = {}
     for key, value in data.items():
         var_name = value
