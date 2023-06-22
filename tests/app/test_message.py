@@ -1,12 +1,13 @@
-"""Tests for the CommandMessage module."""
+"""Tests for the CommandMessage and ErrorMessage modules."""
 
 import pytest
+from datetime import datetime
 import json
-from app.message import CommandMessage
+from app.message import CommandMessage, ErrorMessage
 from app.exceptions import InvalidMessageError
 
 
-def test_good_message():
+def test_good_cmd_message():
     json_obj = {"action": "somecoil", "value": True}
     json_str = json.dumps(json_obj)
     read_msg = CommandMessage.read(json_str)
@@ -14,7 +15,7 @@ def test_good_message():
     assert "value" in read_msg
 
 
-def test_bad_message_structure():
+def test_bad_cmd_message_structure():
     json_obj = {"action": "somecoil", "value": True}
     for key in ("action", "value"):
         json_obj["foo"] = json_obj[key]
@@ -28,7 +29,7 @@ def test_bad_message_structure():
         json_obj[key] = json_obj["foo"]
 
 
-def test_bad_message_syntax():
+def test_bad_cmd_message_syntax():
     json_str = "not a real json string"
     with pytest.raises(InvalidMessageError) as ex:
         _ = CommandMessage.read(json_str)
@@ -36,7 +37,7 @@ def test_bad_message_syntax():
     assert ex.type == InvalidMessageError
 
 
-def test_bad_message_unhandled_exception(monkeypatch):
+def test_bad_cmd_message_unhandled_exception(monkeypatch):
     def fake_json_load(_):
         raise TypeError("unpredictable error")
 
@@ -50,3 +51,20 @@ def test_bad_message_unhandled_exception(monkeypatch):
             _ = CommandMessage.read("")
         assert "Invalid message" in str(ex.value)
         assert ex.type == InvalidMessageError
+
+
+def test_good_err_message():
+    json_obj = {"category": "RuntimeError", "message": "oops"}
+    json_str = ErrorMessage.write(json_obj)
+    assert json_str == """{"category": "RuntimeError", "message": "oops"}"""
+
+
+def test_bad_err_message():
+    json_obj = {
+        "category": "RuntimeError",
+        "message": "something went wrong",
+        "timestamp": datetime.now(),
+    }
+    with pytest.raises(InvalidMessageError) as ex:
+        _ = ErrorMessage.write(json_obj)
+    assert "serialised" in str(ex)

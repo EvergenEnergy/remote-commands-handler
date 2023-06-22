@@ -7,7 +7,8 @@ from app.memory_order import MemoryOrder
 from app.modbus_client import ModbusClient
 from app.payload_builder import PayloadBuilder
 from app.configuration import Coil, Configuration, ModbusSettings, HoldingRegister
-from app.exceptions import UnknownCommandError, ModbusClientError, InvalidMessageError
+from app.error_handler import ErrorHandler
+from app.exceptions import ModbusClientError, InvalidMessageError
 import pytest
 
 
@@ -22,12 +23,17 @@ class TestModbusClient:
         ]
         self.modbus_settings = ModbusSettings("localhost", 5020)
         self.mock_client = MagicMock(spec=ModbusTcpClient)
+        self.mock_error_handler = MagicMock(spec=ErrorHandler)
 
         configuration = Configuration(
             self.coils, self.holding_registers, {}, self.modbus_settings
         )
 
-        self.modbus_client = ModbusClient(configuration, self.mock_client)
+        self.modbus_client = ModbusClient(
+            configuration,
+            self.mock_client,
+            self.mock_error_handler,
+        )
 
     @pytest.mark.parametrize("coil_value", [False, True])
     def test_coils(self, coil_value):
@@ -69,9 +75,8 @@ class TestModbusClient:
         self.modbus_client.write_command(test_coil.name, True)
         self.mock_client.write_coil.assert_called_with(1, True, 1)
 
-        with pytest.raises(UnknownCommandError) as ex:
-            assert self.modbus_client.write_command("bad_register", 54) == 0
-        assert "bad_register" in str(ex.value)
+        self.modbus_client.write_command("bad_register", 54)
+        self.mock_error_handler.publish.assert_called_once()
 
     def test_connect_failure(self):
         self.mock_client.connect.side_effect = ModbusException("could not connect")
