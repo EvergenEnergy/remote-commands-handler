@@ -20,6 +20,12 @@ from app.configuration import (
 from app.exceptions import ConfigurationFileNotFoundError, ConfigurationFileInvalidError
 
 
+def _config_path():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    config_path = os.path.join(current_dir, "example_configuration.yaml")
+    return config_path
+
+
 def test_throws_exception_when_configuration_file_not_found():
     with pytest.raises(ConfigurationFileNotFoundError):
         Configuration.from_file("./tests/config/bad-example_configuration.yaml")
@@ -43,12 +49,6 @@ def test_get_coil():
 
     assert evg_battery_mode_coil_address.address == [3]
     assert target_watt_coil.address == [4]
-
-
-def _config_path():
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    config_path = os.path.join(current_dir, "example_configuration.yaml")
-    return config_path
 
 
 def test_get_holding_registers():
@@ -228,3 +228,27 @@ def test_key_error_in_config_parsing(monkeypatch):
         with pytest.raises(ConfigurationFileInvalidError) as ex:
             _ = Configuration.from_file(_config_path())
         assert "Error parsing configuration" in str(ex.value)
+
+
+def test_read_settings_from_env():
+    env_var_path = _config_path().replace("example", "good_env_var")
+    with pytest.raises(ConfigurationFileInvalidError) as ex:
+        _ = Configuration.from_file(env_var_path)
+    assert "Missing value for expected environment variable 'SITE_NAME'" == str(
+        ex.value
+    )
+
+    os.environ["SITE_NAME"] = "site-from-env"
+    os.environ["SERIAL_NUMBER"] = "serial-from-env"
+    config = Configuration.from_file(env_var_path)
+    assert config.get_site_settings().site_name == "site-from-env"
+    assert config.get_site_settings().serial_number == "serial-from-env"
+    os.environ["SITE_NAME"] = ""
+    os.environ["SERIAL_NUMBER"] = ""
+
+
+def test_read_bad_settings_from_env():
+    env_var_path = _config_path().replace("example", "bad_env_var")
+    with pytest.raises(ConfigurationFileInvalidError) as ex:
+        _ = Configuration.from_file(env_var_path)
+    assert "looks like an environment variable but has an invalid name" in str(ex.value)

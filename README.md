@@ -74,6 +74,12 @@ You will need to modify the `configuration.yaml` file to match your MQTT and Mod
 - The `modbus_mappings` section allows you to configure the coils and holding registers available on your Modbus server
 - Each entry under `coils` and `holding_registers` refers to a space where Modbus will store data. The `name` for each entry will correspond to the `action` of your JSON payloads. The `address` for each entry identifies the relevant location within the Modbus server.
 - For holding registers, you must also specify the `data_type` and `byte_order` for each register.
+- The settings `site_name` and `serial_number` may be populated from environment variables of the same name, as follows:
+```
+site_settings:
+  site_name: $SITE_NAME
+  serial_number: $SERIAL_NUMBER
+```
 
 ## Contributing
 

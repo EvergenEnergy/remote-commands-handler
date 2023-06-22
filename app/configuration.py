@@ -21,6 +21,7 @@ Note:
 """
 
 import os
+import logging
 from dataclasses import dataclass
 import yaml
 from app.memory_order import MemoryOrder
@@ -90,11 +91,16 @@ class Configuration:
 
         try:
             yaml_data = path_to_yaml_data(path)
+            yaml_data["site_settings"] = interpolate_environment_vars(
+                yaml_data["site_settings"]
+            )
         except yaml.YAMLError as exc:
             msg = "Error parsing YAML file"
             if hasattr(exc, "problem_mark"):
                 msg = f"Error encountered parsing YAML {str(exc.problem_mark)}"
             raise ConfigurationFileInvalidError(msg)
+        except ConfigurationFileInvalidError as ex:
+            raise ex
 
         try:
             _validate_config(yaml_data)
@@ -140,22 +146,43 @@ class Configuration:
         )
 
 
-def path_to_yaml_data(path):
+def path_to_yaml_data(path: str):
     with open(path, "r", encoding="UTF8") as file:
         return yaml.safe_load(file)
 
 
-def _site_settings_from_yaml_data(data) -> SiteSettings:
+def interpolate_environment_vars(data: dict):
+    interpolated = {}
+    for key, value in data.items():
+        var_name = value
+        if value.startswith("$"):
+            var_name = value[1:]
+            if value == f"${key.upper()}":
+                value = os.getenv(var_name, "")
+                logging.debug(f"Found value {value!r} in env var {var_name}")
+            else:
+                raise ConfigurationFileInvalidError(
+                    f"Value for {key!r} ({value!r}) looks like an environment variable but has an invalid name."
+                )
+        if not value:
+            raise ConfigurationFileInvalidError(
+                f"Missing value for expected environment variable {var_name!r}"
+            )
+        interpolated[key] = value
+    return interpolated
+
+
+def _site_settings_from_yaml_data(data: dict) -> SiteSettings:
     site_settings = data["site_settings"]
     return SiteSettings(site_settings["site_name"], site_settings["serial_number"])
 
 
-def _modbus_settings_from_yaml_data(data) -> ModbusSettings:
+def _modbus_settings_from_yaml_data(data: dict) -> ModbusSettings:
     modbus_settings = data["modbus_settings"]
     return ModbusSettings(modbus_settings["host"], modbus_settings["port"])
 
 
-def _mqtt_settings_from_yaml_data(data) -> MqttSettings:
+def _mqtt_settings_from_yaml_data(data: dict) -> MqttSettings:
     mqtt_settings = data["mqtt_settings"]
     return MqttSettings(
         mqtt_settings["host"],
@@ -165,7 +192,7 @@ def _mqtt_settings_from_yaml_data(data) -> MqttSettings:
     )
 
 
-def _coils_data_from_yaml_data(data):
+def _coils_data_from_yaml_data(data: dict):
     modbus_mapping = data.get("modbus_mapping", {})
     coils = [
         Coil(coil["name"], coil["address"]) for coil in modbus_mapping.get("coils", [])
@@ -174,7 +201,7 @@ def _coils_data_from_yaml_data(data):
     return coils
 
 
-def _holding_register_from_yaml_data(data):
+def _holding_register_from_yaml_data(data: dict):
     modbus_mapping = data.get("modbus_mapping", {})
 
     holding_registers = []
