@@ -12,6 +12,7 @@ from app.configuration import (
     HoldingRegister,
     ModbusSettings,
     MqttSettings,
+    SiteSettings,
     path_to_yaml_data,
     _validate_config,
     _mqtt_settings_from_yaml_data,
@@ -107,13 +108,23 @@ def test_able_to_get_modbus_settings():
     assert modbus_settings.host == "modbus.host"
 
 
+def test_able_to_get_site():
+    configuration = Configuration.from_file(_config_path())
+
+    site_settings = configuration.get_site_settings()
+
+    assert site_settings.site_name == "testsite"
+    assert site_settings.serial_number == "testserial"
+
+
 def test_get_coils():
     coils = [Coil("test_coil", 1)]
     holding_registers = []
     mqtt_settings = MqttSettings("test", 100, "test")
     modbus_settings = ModbusSettings("localhost", 10)
+    site_settings = SiteSettings("testsite", "testdevice")
     configuration = Configuration(
-        coils, holding_registers, mqtt_settings, modbus_settings
+        coils, holding_registers, mqtt_settings, modbus_settings, site_settings
     )
 
     assert coils == configuration.get_coils()
@@ -124,8 +135,9 @@ def test_get_registers():
     holding_registers = [HoldingRegister("test", "AB", "STR", 1.0, [0])]
     mqtt_settings = MqttSettings("test", 100, "test")
     modbus_settings = ModbusSettings("localhost", 10)
+    site_settings = SiteSettings("testsite", "testdevice")
     configuration = Configuration(
-        coils, holding_registers, mqtt_settings, modbus_settings
+        coils, holding_registers, mqtt_settings, modbus_settings, site_settings
     )
 
     assert holding_registers == configuration.get_holding_registers()

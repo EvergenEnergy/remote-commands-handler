@@ -1,4 +1,7 @@
 ---
+site_settings:
+  site_name: localsite
+  serial_number: DEV123
 mqtt_settings:
   host: mosquitto
   port: 1883

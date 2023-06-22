@@ -146,7 +146,7 @@ def test_able_to_send_uint64(mqtt_client: mqtt.Client, modbus_client: ModbusTcpC
 
 
 @pytest.mark.end_to_end
-def test_read_error_messages(mqtt_client: mqtt.Client):
+def test_read_error_messages(mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient):
     # Subscribe to the error topic and write messages to file
     msg_log = "/tmp/message_log"
     if os.path.exists(msg_log):
@@ -181,6 +181,16 @@ def test_read_error_messages(mqtt_client: mqtt.Client):
         line1 = err_in.readline()
         line2 = err_in.readline()
     assert "InvalidMessage" in line1
+    assert "Message is missing required components" in line1
     assert "UnknownCommand" in line2
+    assert "No coil or register found to match 'NotARealCoil'" in line2
 
     os.remove(msg_log)
+
+    # Confirm that command subscription is still OK
+    message_dictionary = {"action": "testCoil", "value": True}
+    message = json.dumps(message_dictionary)
+    mqtt_client.publish("commands/test", message)
+    time.sleep(1)
+    value = modbus_client.read_coils(504, 1, 1)
+    assert value.bits[0] is True

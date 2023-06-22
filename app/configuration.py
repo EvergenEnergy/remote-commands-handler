@@ -62,6 +62,12 @@ class ModbusSettings:
     port: int
 
 
+@dataclass
+class SiteSettings:
+    site_name: str
+    serial_number: int
+
+
 class Configuration:
     def __init__(
         self,
@@ -69,11 +75,13 @@ class Configuration:
         holding_registers: list[HoldingRegister],
         mqtt_settings: MqttSettings,
         modbus_settings: ModbusSettings,
+        site_settings: SiteSettings,
     ):
         self.coils_map = {x.name: x for x in coils}
         self.holding_register_map = {x.name: x for x in holding_registers}
         self.mqtt_settings = mqtt_settings
         self.modbus_settings = modbus_settings
+        self.site_settings = site_settings
 
     @classmethod
     def from_file(cls, path: str):
@@ -95,7 +103,10 @@ class Configuration:
             holding_registers = _holding_register_from_yaml_data(yaml_data)
             mqtt_settings = _mqtt_settings_from_yaml_data(yaml_data)
             modbus_settings = _modbus_settings_from_yaml_data(yaml_data)
-            return cls(coils, holding_registers, mqtt_settings, modbus_settings)
+            site_settings = _site_settings_from_yaml_data(yaml_data)
+            return cls(
+                coils, holding_registers, mqtt_settings, modbus_settings, site_settings
+            )
         except TypeError as ex:
             raise ConfigurationFileInvalidError(
                 f"Error parsing configuration YAML: {ex}"
@@ -123,10 +134,20 @@ class Configuration:
     def get_modbus_settings(self) -> ModbusSettings:
         return ModbusSettings(self.modbus_settings.host, self.modbus_settings.port)
 
+    def get_site_settings(self) -> SiteSettings:
+        return SiteSettings(
+            self.site_settings.site_name, self.site_settings.serial_number
+        )
+
 
 def path_to_yaml_data(path):
     with open(path, "r", encoding="UTF8") as file:
         return yaml.safe_load(file)
+
+
+def _site_settings_from_yaml_data(data) -> SiteSettings:
+    site_settings = data["site_settings"]
+    return SiteSettings(site_settings["site_name"], site_settings["serial_number"])
 
 
 def _modbus_settings_from_yaml_data(data) -> ModbusSettings:
@@ -173,6 +194,7 @@ def _holding_register_from_yaml_data(data):
 
 def _validate_config(config: dict):
     required_settings = {
+        "site_settings": ["site_name", "serial_number"],
         "mqtt_settings": ["host", "port", "command_topic"],
         "modbus_settings": ["host", "port"],
         "modbus_mapping": [],

@@ -1,4 +1,7 @@
 ---
+site_settings:
+  site_name: e2esite
+  serial_number: E2ETEST
 mqtt_settings:
   host: mosquitto
   port: 1883

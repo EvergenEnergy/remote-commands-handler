@@ -1,4 +1,7 @@
 ---
+site_settings:
+  site_name: testsite
+  serial_number: testserial
 mqtt_settings:
   host: mqtt.host
   port: 9000

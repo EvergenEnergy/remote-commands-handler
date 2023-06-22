@@ -54,6 +54,7 @@ class MqttReader:
         This method blocks the execution and keeps the client connected to the MQTT broker.
         """
         self._client.on_connect = self._on_connect()
+        self._client.on_disconnect = self._on_disconnect()
         self._client.on_message = self._on_message()
 
         self.connect()
@@ -67,7 +68,6 @@ class MqttReader:
                 msg_str = _decode_message(message)
                 msg_obj = CommandMessage.read(msg_str)
             except InvalidMessageError as ex:
-                logging.error(ex)
                 self.error_handler.publish(
                     self.error_handler.Category.INVALID_MESSAGE, str(ex)
                 )
@@ -86,5 +86,12 @@ class MqttReader:
                     client.subscribe(topic)
             else:
                 logging.error("Connection failed")
+
+        return inner
+
+    def _on_disconnect(self):
+        def inner(client, _userdata, rc):
+            if rc > 0:
+                logging.error(f"MQTT client has disconnected: {rc}")
 
         return inner
