@@ -6,7 +6,13 @@ from pymodbus.exceptions import ModbusException
 from app.memory_order import MemoryOrder
 from app.modbus_client import ModbusClient
 from app.payload_builder import PayloadBuilder
-from app.configuration import Coil, Configuration, ModbusSettings, HoldingRegister
+from app.configuration import (
+    Coil,
+    Configuration,
+    ModbusSettings,
+    HoldingRegister,
+    SiteSettings,
+)
 from app.error_handler import ErrorHandler
 from app.exceptions import ModbusClientError, InvalidMessageError
 import pytest
@@ -21,12 +27,17 @@ class TestModbusClient:
                 "float_register", MemoryOrder("BA"), "FLOAT32-IEEE", 1.0, [1]
             ),
         ]
+        self.site_settings = SiteSettings("localhost", "DEV123")
         self.modbus_settings = ModbusSettings("localhost", 5020)
         self.mock_client = MagicMock(spec=ModbusTcpClient)
         self.mock_error_handler = MagicMock(spec=ErrorHandler)
 
         configuration = Configuration(
-            self.coils, self.holding_registers, {}, self.modbus_settings
+            self.coils,
+            self.holding_registers,
+            {},
+            self.modbus_settings,
+            self.site_settings,
         )
 
         self.modbus_client = ModbusClient(

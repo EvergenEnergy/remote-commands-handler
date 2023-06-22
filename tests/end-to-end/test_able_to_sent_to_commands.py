@@ -1,3 +1,4 @@
+import os
 import time
 import json
 import random
@@ -48,9 +49,9 @@ def test_able_to_send_integer16(
     mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient
 ):
     random_value = random.randint(0, 30)
-    message_dictorionary = {"action": "testRegister", "value": random_value}
+    message_dictionary = {"action": "testRegister", "value": random_value}
 
-    message = json.dumps(message_dictorionary)
+    message = json.dumps(message_dictionary)
 
     mqtt_client.publish("commands/test", message)
 
@@ -107,9 +108,9 @@ def test_able_to_send_integer64(
     mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient
 ):
     random_value = random.randint(0, 100)
-    message_dictorionary = {"action": "testInt64Register", "value": random_value}
+    message_dictionary = {"action": "testInt64Register", "value": random_value}
 
-    message = json.dumps(message_dictorionary)
+    message = json.dumps(message_dictionary)
 
     mqtt_client.publish("commands/test", message)
 
@@ -127,9 +128,9 @@ def test_able_to_send_integer64(
 @pytest.mark.end_to_end
 def test_able_to_send_uint64(mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient):
     random_value = random.randint(0, 100)
-    message_dictorionary = {"action": "testUInt64Register", "value": random_value}
+    message_dictionary = {"action": "testUInt64Register", "value": random_value}
 
-    message = json.dumps(message_dictorionary)
+    message = json.dumps(message_dictionary)
 
     mqtt_client.publish("commands/test", message)
 
@@ -142,3 +143,54 @@ def test_able_to_send_uint64(mqtt_client: mqtt.Client, modbus_client: ModbusTcpC
     )
 
     assert decoder.decode_64bit_uint() == random_value
+
+
+@pytest.mark.end_to_end
+def test_read_error_messages(mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient):
+    # Subscribe to the error topic and write messages to file
+    msg_log = "/tmp/message_log"
+    if os.path.exists(msg_log):
+        os.remove(msg_log)
+
+    def read_error(_client, _userdata, message):
+        # When we get an error message from MQTT, write it to file
+        msg_str = message.payload.decode()
+        msg_obj = json.loads(msg_str)
+        with open(msg_log, "a") as err:
+            err.write(f"{msg_str}\n")
+        return msg_obj
+
+    mqtt_client.subscribe("error/#")
+    mqtt_client.on_message = read_error
+
+    # Generate two error messages by sending bad commands
+    def send_bad_command(msg_obj):
+        message = json.dumps(msg_obj)
+        mqtt_client.publish("commands/test", message)
+
+    send_bad_command({"invalid": ["message", "structure"]})
+    send_bad_command({"action": "NotARealCoil", "value": 0})
+
+    # Run the client loop to allow the callback to be executed
+    mqtt_client.loop_start()
+    time.sleep(1)
+    mqtt_client.loop_stop()
+
+    # Check the file for error messages
+    with open(msg_log) as err_in:
+        line1 = err_in.readline()
+        line2 = err_in.readline()
+    assert "InvalidMessage" in line1
+    assert "Message is missing required components" in line1
+    assert "UnknownCommand" in line2
+    assert "No coil or register found to match 'NotARealCoil'" in line2
+
+    os.remove(msg_log)
+
+    # Confirm that command subscription is still OK
+    message_dictionary = {"action": "testCoil", "value": True}
+    message = json.dumps(message_dictionary)
+    mqtt_client.publish("commands/test", message)
+    time.sleep(1)
+    value = modbus_client.read_coils(504, 1, 1)
+    assert value.bits[0] is True

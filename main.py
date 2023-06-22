@@ -101,13 +101,12 @@ def get_configuration_with_overrides(args):
         configuration.get_holding_registers(),
         mqtt_settings_with_override,
         modbus_settings_with_override,
+        configuration.get_site_settings(),
     )
 
 
-def setup_error_handler(
-    configuration: Configuration, mqtt_client: mqtt.Client
-) -> ErrorHandler:
-    return ErrorHandler.from_config(configuration, mqtt_client)
+def setup_error_handler(configuration: Configuration) -> ErrorHandler:
+    return ErrorHandler(configuration, mqtt.Client())
 
 
 def setup_modbus_client(
@@ -124,13 +123,13 @@ def setup_modbus_client(
 
 
 def setup_mqtt_client(
-    configuration: Configuration, mqtt_client: mqtt.Client, error_handler: ErrorHandler
+    configuration: Configuration, error_handler: ErrorHandler
 ) -> MqttReader:
     return MqttReader(
         configuration.get_mqtt_settings().host,
         configuration.get_mqtt_settings().port,
         [configuration.mqtt_settings.command_topic],
-        mqtt_client,
+        mqtt.Client(),
         error_handler,
     )
 
@@ -142,7 +141,6 @@ def main():
         format="%(asctime)s:%(levelname)s:%(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
-    logging.info("Starting service")
     args = handle_args()
 
     try:
@@ -152,9 +150,13 @@ def main():
         logging.error("Error retrieving configuration, exiting")
         sys.exit(1)
 
-    error_handler = setup_error_handler(configuration, mqtt.Client())
+    logging.info(
+        f"Starting service at {configuration.get_site_settings().site_name}"
+        f"/{configuration.get_site_settings().serial_number}"
+    )
+    error_handler = setup_error_handler(configuration)
     modbus_client = setup_modbus_client(configuration, error_handler)
-    mqtt_reader = setup_mqtt_client(configuration, mqtt.Client(), error_handler)
+    mqtt_reader = setup_mqtt_client(configuration, error_handler)
 
     def write_to_modbus(message):
         try:
