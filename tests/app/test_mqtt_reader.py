@@ -80,6 +80,16 @@ class TestMqttReader:
         callback(self.mock_mqtt_client, None, 1)
         assert "MQTT client has disconnected: 1" == str(caplog.records[0].message)
 
+    def test_fail_connect_rc(self, caplog):
+        def call_on_connect(*args):
+            callback = self.mqtt_reader._on_connect()
+            callback(self.mock_mqtt_client, None, None, 1)
+
+        self.mock_mqtt_client.connect.side_effect = call_on_connect
+        self.mqtt_reader.run()
+        self.mqtt_reader.stop()
+        assert "Problem connecting to MQTT broker: 1" == str(caplog.records[0].message)
+
     def test_unhandled_exception(self):
         def process_message(json_str):
             raise RuntimeError("didn't expect that!")

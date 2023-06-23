@@ -93,6 +93,8 @@ class MqttReader:
                 for topic in self._topics:
                     logging.info("Subscribing to topic: %s", topic)
                     client.subscribe(topic)
+            else:
+                logging.error(f"Problem connecting to MQTT broker: {rc}")
 
         return inner
 
