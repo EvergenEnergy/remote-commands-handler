@@ -4,7 +4,7 @@ import argparse
 
 class RemoteCommandHandler:
     @classmethod
-    def parse_arguments(cls, args):
+    def parse_arguments(cls, args: list[str]) -> argparse.Namespace:
         # Create the argument parser
         parser = argparse.ArgumentParser(
             description="remote commands handler",
@@ -42,7 +42,7 @@ class RemoteCommandHandler:
 
         return parser.parse_args(args)
 
-    def get_configuration_with_overrides(self, args):
+    def get_configuration_with_overrides(self, args: argparse.Namespace):
         args_as_dict = vars(args)
         configuration = Configuration.from_file(args.configuration_path)
 
