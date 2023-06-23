@@ -25,6 +25,7 @@ class PayloadBuilder:
         byte_order, word_order = self.memory_order.order()
         res = BinaryPayloadBuilder(None, byte_order, word_order)
 
+        # TODO define these in a constant so we can check config has valid settings
         match self.data_type:  # noqa
             case "FLOAT64-IEEE":
                 res.add_64bit_float(self.value)

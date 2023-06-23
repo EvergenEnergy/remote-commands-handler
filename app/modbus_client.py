@@ -45,7 +45,7 @@ class ModbusClient:
         self._client = modbus_client
         self.error_handler = error_handler
 
-    def write_coils(self, name: str, value: list[bool]):
+    def _write_coils(self, name: str, value: list[bool]):
         coil_configuration = self.configuration.get_coil(name)
         if coil_configuration:
             try:
@@ -55,13 +55,9 @@ class ModbusClient:
                 logging.debug(f"wrote to coil {name}, value: {value!r}")
                 return len(value)
             except ModbusException as ex:
-                self.error_handler.publish(
-                    self.error_handler.Category.MODBUS_ERROR, str(ex)
-                )
                 raise ModbusClientError(ex)
-        return 0
 
-    def write_coil(self, name: str, value: bool):
+    def _write_coil(self, name: str, value: bool):
         coil_configuration = self.configuration.get_coil(name)
         if coil_configuration:
             try:
@@ -71,21 +67,14 @@ class ModbusClient:
                 logging.debug(f"wrote to coil {name}, value: {value!r}")
                 return 1
             except ModbusException as ex:
-                self.error_handler.publish(
-                    self.error_handler.Category.MODBUS_ERROR, str(ex)
-                )
                 raise ModbusClientError(ex)
-        return 0
 
-    def write_register(self, name: str, value):
+    def _write_register(self, name: str, value):
         holding_register_configuration = self.configuration.get_holding_register(name)
         if holding_register_configuration:
             try:
                 payload = _build_register_payload(holding_register_configuration, value)
-            except Exception as ex:
-                self.error_handler.publish(
-                    self.error_handler.Category.INVALID_MESSAGE, str(ex)
-                )
+            except (AttributeError, RuntimeError) as ex:
                 raise InvalidMessageError(ex)
             try:
                 self._client.connect()
@@ -96,28 +85,45 @@ class ModbusClient:
                 logging.debug(f"wrote to register {name}, value: {value!r}")
                 return 1
             except ModbusException as ex:
-                self.error_handler.publish(
-                    self.error_handler.Category.MODBUS_ERROR, str(ex)
-                )
                 raise ModbusClientError(ex)
-        return 0
 
     def write_command(self, name: str, value):
         sent = 0
 
         coil_configuration = self.configuration.get_coil(name)
         if coil_configuration:
-            sent += self.write_coil(name, bool(value))
+            try:
+                if isinstance(value, list):
+                    sent += self._write_coils(name, value)
+                else:
+                    sent += self._write_coil(name, bool(value))
+            except ModbusClientError as ex:
+                self.error_handler.publish(
+                    self.error_handler.Category.MODBUS_ERROR, str(ex)
+                )
+                raise ex
 
         holding_register_configuration = self.configuration.get_holding_register(name)
         if holding_register_configuration:
-            sent += self.write_register(name, value)
+            try:
+                sent += self._write_register(name, value)
+            except InvalidMessageError as ex:
+                self.error_handler.publish(
+                    self.error_handler.Category.INVALID_MESSAGE, str(ex)
+                )
+                return 0
+            except ModbusClientError as ex:
+                self.error_handler.publish(
+                    self.error_handler.Category.MODBUS_ERROR, str(ex)
+                )
+                raise ex
 
         if sent == 0:
             ex = UnknownCommandError(name)
             self.error_handler.publish(
                 self.error_handler.Category.UNKNOWN_COMMAND, str(ex)
             )
+        return sent
 
 
 def _build_register_payload(holding_register: HoldingRegister, value):

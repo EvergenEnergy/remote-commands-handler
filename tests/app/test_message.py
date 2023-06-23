@@ -21,7 +21,6 @@ def test_bad_cmd_message_structure():
         json_obj["foo"] = json_obj[key]
         del json_obj[key]
         json_str = json.dumps(json_obj)
-        print(json_str)
         with pytest.raises(InvalidMessageError) as ex:
             _ = CommandMessage.read(json_str)
         assert "Message is missing required components" in str(ex.value)
@@ -35,22 +34,6 @@ def test_bad_cmd_message_syntax():
         _ = CommandMessage.read(json_str)
     assert "Message is invalid JSON syntax" in str(ex.value)
     assert ex.type == InvalidMessageError
-
-
-def test_bad_cmd_message_unhandled_exception(monkeypatch):
-    def fake_json_load(_):
-        raise TypeError("unpredictable error")
-
-    with monkeypatch.context() as m:
-        m.setattr(
-            json,
-            "loads",
-            fake_json_load,
-        )
-        with pytest.raises(InvalidMessageError) as ex:
-            _ = CommandMessage.read("")
-        assert "Invalid message" in str(ex.value)
-        assert ex.type == InvalidMessageError
 
 
 def test_good_err_message():

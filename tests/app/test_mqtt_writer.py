@@ -8,7 +8,7 @@ import json
 
 
 class TestMqttWriter:
-    def setup_class(self):
+    def setup_method(self):
         self.mock_mqtt_client = MagicMock(spec=mqtt.Client)
         self.mqtt_writer = MqttWriter(
             host="localhost",

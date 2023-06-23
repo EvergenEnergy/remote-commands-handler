@@ -16,17 +16,14 @@ class CommandMessage:
     def read(cls, message_str: str):
         try:
             message_obj = json.loads(message_str)
-            assert message_obj.get("action")
-            assert "value" in message_obj
-            return message_obj
         except JSONDecodeError as ex:
             raise InvalidMessageError(f"Message is invalid JSON syntax: {ex}")
-        except AssertionError:
+
+        if not message_obj.get("action") or "value" not in message_obj:
             raise InvalidMessageError(
                 "Message is missing required components 'action' and/or 'value'"
             )
-        except Exception as ex:
-            raise InvalidMessageError(f"Invalid message: {ex}")
+        return message_obj
 
 
 class ErrorMessage:
@@ -36,6 +33,6 @@ class ErrorMessage:
     def write(cls, message: dict):
         try:
             return json.dumps(message)
-        except Exception as ex:
+        except (TypeError, ValueError, OverflowError) as ex:
             logging.error(f"Couldn't write message {message}")
             raise InvalidMessageError(f"JSON object cannot be serialised: {ex}")

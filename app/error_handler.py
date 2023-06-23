@@ -18,6 +18,7 @@ class ErrorHandler:
         MQTT_ERROR = "MQTTError"
         INVALID_MESSAGE = "InvalidMessage"
         UNKNOWN_COMMAND = "UnknownCommand"
+        UNHANDLED = "UnhandledException"
 
     def __init__(self, config: Configuration, mqtt_client: mqtt.Client):
         mqtt_settings = config.get_mqtt_settings()
