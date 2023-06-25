@@ -10,7 +10,7 @@ import json
 
 
 class TestMqttReader:
-    def setup_class(self):
+    def setup_method(self):
         self.mock_mqtt_client = MagicMock(spec=mqtt.Client)
         self.mock_error_handler = MagicMock(spec=ErrorHandler)
         self.mqtt_reader = MqttReader(
@@ -60,7 +60,10 @@ class TestMqttReader:
         paho_msg = MQTTMessage()
         paho_msg.payload = bad_json_str.encode()
         self.mock_mqtt_client.on_message(self.mock_mqtt_client, None, paho_msg)
-        self.mock_error_handler.publish.assert_called()
+        self.mock_error_handler.publish.assert_called_with(
+            self.mock_error_handler.Category.INVALID_MESSAGE,
+            "Message is invalid JSON syntax: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)",  # noqa
+        )
 
         self.mqtt_reader.stop()
 
@@ -70,20 +73,36 @@ class TestMqttReader:
             self.mqtt_reader.run()
         assert "Cannot connect to MQTT broker" in str(ex.value)
 
-    def test_fail_connect_rc(self):
-        def call_on_connect(*args):
-            callback = self.mqtt_reader._on_connect()
-            callback(self.mock_mqtt_client, None, None, 1)
-            self.mock_error_handler.publish.assert_called()
-
-        self.mock_mqtt_client.connect.side_effect = call_on_connect
-        self.mqtt_reader.run()
-        self.mqtt_reader.stop()
-        self.mock_mqtt_client.connect.side_effect = None
-
     def test_disconnect(self, caplog):
         self.mock_mqtt_client.connect.return_value = 0
         self.mqtt_reader.run()
         callback = self.mock_mqtt_client.on_disconnect
         callback(self.mock_mqtt_client, None, 1)
         assert "MQTT client has disconnected: 1" == str(caplog.records[0].message)
+
+    def test_fail_connect_rc(self, caplog):
+        def call_on_connect(*args):
+            callback = self.mqtt_reader._on_connect()
+            callback(self.mock_mqtt_client, None, None, 1)
+
+        self.mock_mqtt_client.connect.side_effect = call_on_connect
+        self.mqtt_reader.run()
+        self.mqtt_reader.stop()
+        assert "Problem connecting to MQTT broker: 1" == str(caplog.records[0].message)
+
+    def test_unhandled_exception(self):
+        def process_message(json_str):
+            raise RuntimeError("didn't expect that!")
+
+        self.mqtt_reader.add_message_callback(process_message)
+        self.mqtt_reader.run()
+
+        paho_msg = MQTTMessage()
+        json_str = json.dumps({"action": "test", "value": True})
+        paho_msg.payload = json_str.encode()
+        self.mock_mqtt_client.on_message(self.mock_mqtt_client, None, paho_msg)
+        self.mock_error_handler.publish.assert_called_with(
+            self.mock_error_handler.Category.UNHANDLED, "didn't expect that!"
+        )
+
+        self.mqtt_reader.stop()

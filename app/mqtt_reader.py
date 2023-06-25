@@ -65,15 +65,24 @@ class MqttReader:
     def _on_message(self):
         def inner(_client, _userdata, message):
             try:
-                msg_str = _decode_message(message)
-                msg_obj = CommandMessage.read(msg_str)
-            except InvalidMessageError as ex:
+                try:
+                    msg_str = _decode_message(message)
+                    msg_obj = CommandMessage.read(msg_str)
+                except InvalidMessageError as ex:
+                    self.error_handler.publish(
+                        self.error_handler.Category.INVALID_MESSAGE, str(ex)
+                    )
+                    return
+                for callback in self._on_message_callbacks:
+                    callback(msg_obj)
+            # In general it's not good practice to catch Exception, but we're doing so here
+            # in order to trap unhandled exceptions occurring within message processing,
+            # and prevent them rising up to the main loop.
+            # If these occur, the cause should be identified and code changed to catch them.
+            except Exception as ex:
                 self.error_handler.publish(
-                    self.error_handler.Category.INVALID_MESSAGE, str(ex)
+                    self.error_handler.Category.UNHANDLED, str(ex)
                 )
-                return
-            for callback in self._on_message_callbacks:
-                callback(msg_obj)
 
         return inner
 
@@ -85,7 +94,7 @@ class MqttReader:
                     logging.info("Subscribing to topic: %s", topic)
                     client.subscribe(topic)
             else:
-                logging.error("Connection failed")
+                logging.error(f"Problem connecting to MQTT broker: {rc}")
 
         return inner
 

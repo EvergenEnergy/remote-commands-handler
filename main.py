@@ -159,10 +159,7 @@ def main():
     mqtt_reader = setup_mqtt_client(configuration, error_handler)
 
     def write_to_modbus(message):
-        try:
-            modbus_client.write_command(message["action"], message["value"])
-        except Exception as e:
-            logging.error(f"Error writing to modbus: {e}")
+        modbus_client.write_command(message["action"], message["value"])
 
     mqtt_reader.add_message_callback(write_to_modbus)
 
