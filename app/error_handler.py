@@ -23,8 +23,6 @@ class ErrorHandler:
 
     def __init__(self, config: Configuration, mqtt_client: mqtt.Client):
         mqtt_settings = config.get_mqtt_settings()
-        self.site_name = config.get_site_settings().site_name
-        self.serial_number = config.get_site_settings().serial_number
         if not mqtt_settings.pub_errors:
             self.active = False
             self.host = None
@@ -46,6 +44,6 @@ class ErrorHandler:
         payload = ErrorMessage.write(
             {"category": category, "message": message, "timestamp": time.time()}
         )
-        topic = f"{self.topic}/{self.site_name}/{self.serial_number}"
+        topic = f"{self.topic}/{category}"
         logging.info(f"Publishing a {category} error to topic {topic}: {message}")
         self._client.publish(topic, payload)
