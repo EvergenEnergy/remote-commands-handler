@@ -234,8 +234,9 @@ def test_read_settings_from_env():
     env_var_path = _config_path().replace("example", "good_env_var")
     with pytest.raises(ConfigurationFileInvalidError) as ex:
         _ = Configuration.from_file(env_var_path)
-    assert "Missing value for expected environment variable 'SITE_NAME'" == str(
-        ex.value
+    assert (
+        str(ex.value)
+        == "Missing value for expected environment variable 'SITE_NAME' in config setting 'site_name'"  # noqa
     )
 
     os.environ["SITE_NAME"] = "site-from-env"
@@ -243,6 +244,10 @@ def test_read_settings_from_env():
     config = Configuration.from_file(env_var_path)
     assert config.get_site_settings().site_name == "site-from-env"
     assert config.get_site_settings().serial_number == "serial-from-env"
+    assert (
+        config.get_mqtt_settings().error_topic
+        == "telemetry/site-from-env/error/serial-from-env/site-from-env"  # noqa
+    )
     os.environ["SITE_NAME"] = ""
     os.environ["SERIAL_NUMBER"] = ""
 
@@ -251,4 +256,4 @@ def test_read_bad_settings_from_env():
     env_var_path = _config_path().replace("example", "bad_env_var")
     with pytest.raises(ConfigurationFileInvalidError) as ex:
         _ = Configuration.from_file(env_var_path)
-    assert "looks like an environment variable but has an invalid name" in str(ex.value)
+    assert "is referencing an unknown environment variable" in str(ex.value)

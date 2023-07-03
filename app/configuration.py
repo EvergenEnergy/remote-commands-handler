@@ -20,6 +20,7 @@ Note:
 
 """
 
+import re
 import os
 import logging
 from dataclasses import dataclass
@@ -28,6 +29,8 @@ from app.memory_order import MemoryOrder
 
 
 from app.exceptions import ConfigurationFileNotFoundError, ConfigurationFileInvalidError
+
+ENV_VAR_KEYS = ("SITE_NAME", "SERIAL_NUMBER")
 
 
 @dataclass
@@ -55,6 +58,8 @@ class MqttSettings:
 
     def __post_init__(self):
         self.pub_errors = self.error_topic is not None and len(self.error_topic) > 0
+        if self.pub_errors:
+            logging.info(f"Publishing errors under {self.error_topic}")
 
 
 @dataclass
@@ -91,9 +96,16 @@ class Configuration:
 
         try:
             yaml_data = path_to_yaml_data(path)
-            yaml_data["site_settings"] = _interpolate_environment_vars(
-                yaml_data["site_settings"]
-            )
+            for key in yaml_data["site_settings"].keys():
+                yaml_data["site_settings"][key] = _interpolate_environment_vars(
+                    yaml_data["site_settings"][key], key
+                )
+            if yaml_data["mqtt_settings"].get("error_topic"):
+                yaml_data["mqtt_settings"][
+                    "error_topic"
+                ] = _interpolate_environment_vars(
+                    yaml_data["mqtt_settings"]["error_topic"], "error_topic"
+                )
         except yaml.YAMLError as exc:
             msg = "Error parsing YAML file"
             if hasattr(exc, "problem_mark"):
@@ -151,25 +163,23 @@ def path_to_yaml_data(path: str):
         return yaml.safe_load(file)
 
 
-def _interpolate_environment_vars(data: dict):
-    interpolated = {}
-    for key, value in data.items():
-        var_name = value
-        if value.startswith("$"):
-            var_name = value[1:]
-            if value == f"${key.upper()}":
-                value = os.getenv(var_name, "")
-                logging.debug(f"Found value {value!r} in env var {var_name}")
-            else:
+def _interpolate_environment_vars(config_value: str, config_key: str):
+    for var_name in ENV_VAR_KEYS:
+        match_str = "${" + var_name + "}"
+        if match_str in config_value:
+            env_value = os.getenv(var_name, "")
+            if not env_value:
                 raise ConfigurationFileInvalidError(
-                    f"Value for {key!r} ({value!r}) looks like an environment variable but has an invalid name."
+                    f"Missing value for expected environment variable {var_name!r} in config setting {config_key!r}"
                 )
-        if not value:
-            raise ConfigurationFileInvalidError(
-                f"Missing value for expected environment variable {var_name!r}"
-            )
-        interpolated[key] = value
-    return interpolated
+            config_value = config_value.replace(match_str, env_value)
+    # Check for remaining unmatched strings that look like env vars
+    pattern = r"\${([A-Z\_]+)}"
+    if re.findall(pattern, config_value):
+        raise ConfigurationFileInvalidError(
+            f"Config setting key {config_key} ({config_value!r}) is referencing an unknown environment variable"
+        )
+    return config_value
 
 
 def _site_settings_from_yaml_data(data: dict) -> SiteSettings:
