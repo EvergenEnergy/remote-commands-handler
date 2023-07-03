@@ -2,6 +2,7 @@
 
 
 """
+import time
 import logging
 
 from app.configuration import Configuration
@@ -42,7 +43,9 @@ class ErrorHandler:
         logging.error(f"{category}: {message}")
         if not self.active:
             return
-        payload = ErrorMessage.write({"category": category, "message": message})
+        payload = ErrorMessage.write(
+            {"category": category, "message": message, "timestamp": time.time()}
+        )
         topic = f"{self.topic}/{self.site_name}/{self.serial_number}"
         logging.info(f"Publishing a {category} error to topic {topic}: {message}")
         self._client.publish(topic, payload)
