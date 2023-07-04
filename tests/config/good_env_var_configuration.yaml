@@ -1,12 +1,12 @@
 ---
 site_settings:
-  site_name: $SITE_NAME
-  serial_number: $SERIAL_NUMBER
+  site_name: ${SITE_NAME}
+  serial_number: ${SERIAL_NUMBER}
 mqtt_settings:
   host: mqtt.host
   port: 9000
   command_topic: commands/#
-  error_topic: error/
+  error_topic: telemetry/${SITE_NAME}/error/${SERIAL_NUMBER}/${SITE_NAME}
 modbus_settings:
   host: modbus.host
   port: 8080

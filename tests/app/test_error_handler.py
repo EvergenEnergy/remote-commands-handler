@@ -1,6 +1,7 @@
 from app.error_handler import ErrorHandler
 from app.configuration import Configuration, _mqtt_settings_from_yaml_data
 import paho.mqtt.client as mqtt
+from freezegun import freeze_time
 from unittest.mock import MagicMock
 
 
@@ -34,8 +35,14 @@ def test_no_error_handler():
     error.publish(error.Category.UNKNOWN_COMMAND, "foo")
 
 
-def test_publish_error():
+def test_error_payload():
     mock_mqtt_client = MagicMock(spec=mqtt.Client)
     config = Configuration.from_file(example_config_path())
     error = ErrorHandler(config, mock_mqtt_client)
-    error.publish(error.Category.UNKNOWN_COMMAND, "oops")
+
+    with freeze_time("2023-07-01 12:00:00"):
+        error.publish(error.Category.UNKNOWN_COMMAND, "oops")
+        call_args, _ = mock_mqtt_client.publish.call_args
+        payload = call_args[1]
+        assert '"timestamp": 1688212800.0' in payload
+        assert '"message": "oops"' in payload

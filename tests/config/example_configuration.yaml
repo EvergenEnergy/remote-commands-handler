@@ -6,7 +6,7 @@ mqtt_settings:
   host: mqtt.host
   port: 9000
   command_topic: commands/#
-  error_topic: error/
+  error_topic: errors
 modbus_settings:
   host: modbus.host
   port: 8080

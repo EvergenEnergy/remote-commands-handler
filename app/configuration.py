@@ -20,14 +20,16 @@ Note:
 
 """
 
+import re
 import os
-import logging
 from dataclasses import dataclass
 import yaml
 from app.memory_order import MemoryOrder
 
 
 from app.exceptions import ConfigurationFileNotFoundError, ConfigurationFileInvalidError
+
+ENV_VAR_PATTERN = re.compile(r"\${([A-Z\_]+)}")
 
 
 @dataclass
@@ -90,10 +92,7 @@ class Configuration:
             raise ConfigurationFileNotFoundError(path)
 
         try:
-            yaml_data = path_to_yaml_data(path)
-            yaml_data["site_settings"] = _interpolate_environment_vars(
-                yaml_data["site_settings"]
-            )
+            yaml_data = _interpolate_environment_vars(path_to_yaml_data(path))
         except yaml.YAMLError as exc:
             msg = "Error parsing YAML file"
             if hasattr(exc, "problem_mark"):
@@ -151,25 +150,17 @@ def path_to_yaml_data(path: str):
         return yaml.safe_load(file)
 
 
-def _interpolate_environment_vars(data: dict):
-    interpolated = {}
-    for key, value in data.items():
-        var_name = value
-        if value.startswith("$"):
-            var_name = value[1:]
-            if value == f"${key.upper()}":
-                value = os.getenv(var_name, "")
-                logging.debug(f"Found value {value!r} in env var {var_name}")
-            else:
-                raise ConfigurationFileInvalidError(
-                    f"Value for {key!r} ({value!r}) looks like an environment variable but has an invalid name."
-                )
-        if not value:
+def _interpolate_environment_vars(config: dict):
+    config_str = yaml.safe_dump(config)
+    for var_name in re.findall(ENV_VAR_PATTERN, config_str):
+        match_str = "${" + var_name + "}"
+        env_value = os.getenv(var_name, "")
+        if not env_value:
             raise ConfigurationFileInvalidError(
-                f"Missing value for expected environment variable {var_name!r}"
+                f"Missing value for expected environment variable {var_name!r} in config"
             )
-        interpolated[key] = value
-    return interpolated
+        config_str = config_str.replace(match_str, env_value)
+    return yaml.safe_load(config_str)
 
 
 def _site_settings_from_yaml_data(data: dict) -> SiteSettings:
