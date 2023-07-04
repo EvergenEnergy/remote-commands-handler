@@ -236,7 +236,7 @@ def test_read_settings_from_env():
         _ = Configuration.from_file(env_var_path)
     assert (
         str(ex.value)
-        == "Missing value for expected environment variable 'SITE_NAME' in config setting 'site_name'"  # noqa
+        == "Missing value for expected environment variable 'SITE_NAME' in config"  # noqa
     )
 
     os.environ["SITE_NAME"] = "site-from-env"
@@ -250,10 +250,3 @@ def test_read_settings_from_env():
     )
     os.environ["SITE_NAME"] = ""
     os.environ["SERIAL_NUMBER"] = ""
-
-
-def test_read_bad_settings_from_env():
-    env_var_path = _config_path().replace("example", "bad_env_var")
-    with pytest.raises(ConfigurationFileInvalidError) as ex:
-        _ = Configuration.from_file(env_var_path)
-    assert "is referencing an unknown environment variable" in str(ex.value)

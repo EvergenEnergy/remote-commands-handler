@@ -35,6 +35,8 @@ class ErrorHandler:
         self.host = mqtt_settings.host
         self.port = mqtt_settings.port
         self.topic = mqtt_settings.error_topic
+        if self.active:
+            logging.info(f"Configured to publish errors via MQTT under {self.topic}")
         self._client = MqttWriter(self.host, self.port, mqtt_client)
 
     def publish(self, category: Category, message: str):
