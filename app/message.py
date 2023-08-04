@@ -6,6 +6,7 @@ This module encapsulates the functionality required to read and validate an inco
 import json
 from json import JSONDecodeError
 import logging
+from pydantic import validate_call, ValidationError
 
 from app.exceptions import InvalidMessageError, UnknownCommandError
 from app.configuration import Configuration
@@ -26,11 +27,7 @@ class CommandMessage:
             raise UnknownCommandError(self.name)
 
     def validate(self):
-        logging.info(f"input config for {self.name}: {self.configuration}")
-        is_valid = True
-        if not is_valid:
-            raise InvalidMessageError("Message wasn't valid")
-        return True
+        return MessageValidator.validate(self.input_type, self.value)
 
     @classmethod
     def read(cls, message_str: str):
@@ -44,6 +41,23 @@ class CommandMessage:
                 "Message is missing required components 'action' and/or 'value'"
             )
         return message_obj
+
+
+class MessageValidator:
+    @classmethod
+    @validate_call
+    def is_bool(cls, value: bool) -> bool:
+        return True
+
+    @classmethod
+    def validate(cls, input_type, value):
+        if input_type == "COIL":
+            try:
+                return cls.is_bool(value)
+            except ValidationError:
+                raise InvalidMessageError(
+                    f"The {input_type.lower()} value {value!r} is invalid."
+                )
 
 
 class ErrorMessage:

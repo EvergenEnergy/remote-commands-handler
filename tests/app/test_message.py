@@ -48,6 +48,15 @@ class TestCommandMessage:
         assert "Message is invalid JSON syntax" in str(ex.value)
         assert ex.type == InvalidMessageError
 
+    def test_bad_cmd_message_datatype(self):
+        msg = CommandMessage("evgBatteryModeCoil", True, self.configuration)
+        assert msg.validate() is True
+        msg = CommandMessage("evgBatteryModeCoil", "foo", self.configuration)
+        with pytest.raises(InvalidMessageError) as ex:
+            msg.validate()
+        assert "The coil value 'foo' is invalid" in str(ex.value)
+        assert ex.type == InvalidMessageError
+
 
 class TestErrorMessage:
     def test_good_err_message(self):

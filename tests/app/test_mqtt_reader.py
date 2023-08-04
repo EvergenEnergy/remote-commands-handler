@@ -76,6 +76,20 @@ class TestMqttReader:
 
         self.mqtt_reader.stop()
 
+    def test_unknown_message(self):
+        self.mqtt_reader.run()
+
+        unknown_msg = json.dumps({"action": "noSuchCoil", "value": False})
+        paho_msg = MQTTMessage()
+        paho_msg.payload = unknown_msg.encode()
+        self.mock_mqtt_client.on_message(self.mock_mqtt_client, None, paho_msg)
+        self.mock_error_handler.publish.assert_called_with(
+            self.mock_error_handler.Category.UNKNOWN_COMMAND,
+            "No coil or register found to match 'noSuchCoil'",
+        )
+
+        self.mqtt_reader.stop()
+
     def test_fail_connect(self):
         self.mock_mqtt_client.connect.side_effect = OSError("could not connect")
         with pytest.raises(OSError) as ex:
