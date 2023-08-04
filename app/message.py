@@ -3,14 +3,34 @@
 This module encapsulates the functionality required to read and validate an incoming MQTT message.
 """
 
-from app.exceptions import InvalidMessageError
 import json
 from json import JSONDecodeError
 import logging
 
+from app.exceptions import InvalidMessageError, UnknownCommandError
+from app.configuration import Configuration
+
 
 class CommandMessage:
-    """Read message contents and validate its structure."""
+    """Create a CommandMessage object and retrieve its configuration."""
+
+    def __init__(self, name: str, value, configuration: Configuration) -> None:
+        self.name = name
+        self.value = value
+        self.configuration = configuration.get_coil(
+            self.name
+        ) or configuration.get_holding_register(self.name)
+        if self.configuration:
+            self.input_type = self.configuration.input_type
+        else:
+            raise UnknownCommandError(self.name)
+
+    def validate(self):
+        logging.info(f"input config for {self.name}: {self.configuration}")
+        is_valid = True
+        if not is_valid:
+            raise InvalidMessageError("Message wasn't valid")
+        return True
 
     @classmethod
     def read(cls, message_str: str):

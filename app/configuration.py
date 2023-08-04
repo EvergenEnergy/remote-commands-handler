@@ -23,6 +23,7 @@ Note:
 import re
 import os
 from dataclasses import dataclass
+from typing import ClassVar
 import yaml
 from app.memory_order import MemoryOrder
 
@@ -34,12 +35,14 @@ ENV_VAR_PATTERN = re.compile(r"\${([A-Z\_]+)}")
 
 @dataclass
 class Coil:
+    input_type: ClassVar[str] = "COIL"
     name: str
     address: list[int]
 
 
 @dataclass
 class HoldingRegister:
+    input_type: ClassVar[str] = "REGISTER"
     name: str
     memory_order: MemoryOrder
     data_type: str
