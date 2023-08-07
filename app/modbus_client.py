@@ -26,7 +26,7 @@ import logging
 
 from pymodbus.client import ModbusTcpClient
 from pymodbus.exceptions import ModbusException
-from app.configuration import Configuration, HoldingRegister
+from app.configuration import Configuration, HoldingRegister, InputTypes
 from app.payload_builder import PayloadBuilder
 from app.exceptions import ModbusClientError, InvalidMessageError
 from app.error_handler import ErrorHandler
@@ -92,7 +92,7 @@ class ModbusClient:
 
         name = message.name
         value = message.value
-        if message.input_type == "COIL":
+        if message.input_type == InputTypes.COIL:
             try:
                 if isinstance(value, list):
                     sent += self._write_coils(name, value)
@@ -104,7 +104,7 @@ class ModbusClient:
                 )
                 raise ex
 
-        if message.input_type == "REGISTER":
+        if message.input_type == InputTypes.REGISTER:
             try:
                 sent += self._write_register(name, value)
             except InvalidMessageError as ex:

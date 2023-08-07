@@ -13,6 +13,7 @@ from app.configuration import (
     ModbusSettings,
     MqttSettings,
     SiteSettings,
+    InputTypes,
     path_to_yaml_data,
     _validate_config,
     _mqtt_settings_from_yaml_data,
@@ -49,8 +50,8 @@ def test_get_coil():
 
     assert evg_battery_mode_coil_address.address == [3]
     assert target_watt_coil.address == [4]
-    assert evg_battery_mode_coil_address.input_type == "COIL"
-    assert target_watt_coil.input_type == "COIL"
+    assert evg_battery_mode_coil_address.input_type == InputTypes.COIL
+    assert target_watt_coil.input_type == InputTypes.COIL
 
 
 def test_get_holding_registers():
@@ -63,7 +64,7 @@ def test_get_holding_registers():
     assert evg_battery_mode.data_type == "INT16"
     assert evg_battery_mode.scale == 1.0
     assert evg_battery_mode.address == [0]
-    assert evg_battery_mode.input_type == "REGISTER"
+    assert evg_battery_mode.input_type == InputTypes.REGISTER
 
     evg_battery_target_soc_percent = configuration.get_holding_register(
         "evgBatteryTargetSOCPercent"
@@ -77,7 +78,7 @@ def test_get_holding_registers():
     assert evg_battery_target_soc_percent.data_type == "INT16"
     assert evg_battery_target_soc_percent.scale == 1.0
     assert evg_battery_target_soc_percent.address == [2]
-    assert evg_battery_target_soc_percent.input_type == "REGISTER"
+    assert evg_battery_target_soc_percent.input_type == InputTypes.REGISTER
 
 
 def test_able_to_get_mqtt_settings():

@@ -9,7 +9,7 @@ import logging
 from pydantic import validate_call, ValidationError
 
 from app.exceptions import InvalidMessageError, UnknownCommandError
-from app.configuration import Configuration
+from app.configuration import Configuration, InputTypes
 
 
 class CommandMessage:
@@ -27,7 +27,7 @@ class CommandMessage:
             raise UnknownCommandError(self.name)
 
     def validate(self):
-        return MessageValidator.validate(self.input_type, self.value)
+        MessageValidator.validate(self.input_type, self.value)
 
     @classmethod
     def read(cls, message_str: str):
@@ -51,14 +51,13 @@ class MessageValidator:
 
     @classmethod
     def validate(cls, input_type, value):
-        if input_type == "COIL":
+        if input_type == InputTypes.COIL:
             try:
-                return cls.is_bool(value)
+                cls.is_bool(value)
             except ValidationError:
                 raise InvalidMessageError(
                     f"The {input_type.lower()} value {value!r} is invalid."
                 )
-        return True
 
 
 class ErrorMessage:

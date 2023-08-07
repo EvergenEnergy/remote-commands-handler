@@ -31,8 +31,8 @@ class MqttReader:
         self._on_message_callbacks = []
         self._client = client
 
-        self.host = configuration.get_mqtt_settings().host
-        self.port = configuration.get_mqtt_settings().port
+        self._host = configuration.get_mqtt_settings().host
+        self._port = configuration.get_mqtt_settings().port
         self._topics = [configuration.mqtt_settings.command_topic]
 
     def add_message_callback(self, f: Callable[[str], None]):
@@ -40,10 +40,10 @@ class MqttReader:
 
     def connect(self) -> None:
         try:
-            self._client.connect(self.host, self.port)
+            self._client.connect(self._host, self._port)
             return True
         except OSError as e:
-            ex = OSError(f"Cannot connect to MQTT broker at {self.host}:{self.port}")
+            ex = OSError(f"Cannot connect to MQTT broker at {self._host}:{self._port}")
             raise ex from e
 
     def stop(self) -> None:

@@ -50,7 +50,10 @@ class TestCommandMessage:
 
     def test_bad_cmd_message_datatype(self):
         msg = CommandMessage("evgBatteryModeCoil", True, self.configuration)
-        assert msg.validate() is True
+        try:
+            msg.validate()
+        except InvalidMessageError:
+            assert False
         msg = CommandMessage("evgBatteryModeCoil", "foo", self.configuration)
         with pytest.raises(InvalidMessageError) as ex:
             msg.validate()
@@ -104,8 +107,11 @@ class TestInputValidation:
         bad_values = ["foo", 23, None]
 
         for g in pydantic_accepts:
-            msg_obj = CommandMessage("evgBatteryModeCoil", g, self.configuration)
-            assert msg_obj.validate(), f"Value {g} is not considered a valid boolean"
+            try:
+                msg_obj = CommandMessage("evgBatteryModeCoil", g, self.configuration)
+                msg_obj.validate()
+            except InvalidMessageError:
+                assert False, f"Value {g} is not considered a valid boolean"
 
         for b in bad_values:
             msg_obj = CommandMessage("evgBatteryModeCoil", b, self.configuration)
@@ -116,5 +122,8 @@ class TestInputValidation:
     def test_ints(self):
         # Added for coverage, validate is not yet implemented for ints
         for v in [100]:
-            msg_obj = CommandMessage("evgBatteryMode", v, self.configuration)
-            assert msg_obj.validate(), f"Value {v} is not considered a valid integer"
+            try:
+                msg_obj = CommandMessage("evgBatteryMode", v, self.configuration)
+                msg_obj.validate()
+            except InvalidMessageError:
+                assert False, f"Value {v} is not considered a valid integer"

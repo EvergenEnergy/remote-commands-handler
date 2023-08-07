@@ -23,6 +23,7 @@ Note:
 import re
 import os
 from dataclasses import dataclass
+from enum import Enum
 from typing import ClassVar
 import yaml
 from app.memory_order import MemoryOrder
@@ -33,16 +34,21 @@ from app.exceptions import ConfigurationFileNotFoundError, ConfigurationFileInva
 ENV_VAR_PATTERN = re.compile(r"\${([A-Z\_]+)}")
 
 
+class InputTypes(str, Enum):
+    COIL = "Coil"
+    REGISTER = "Register"
+
+
 @dataclass
 class Coil:
-    input_type: ClassVar[str] = "COIL"
+    input_type: ClassVar[str] = InputTypes.COIL
     name: str
     address: list[int]
 
 
 @dataclass
 class HoldingRegister:
-    input_type: ClassVar[str] = "REGISTER"
+    input_type: ClassVar[str] = InputTypes.REGISTER
     name: str
     memory_order: MemoryOrder
     data_type: str
