@@ -73,3 +73,48 @@ class TestErrorMessage:
         with pytest.raises(InvalidMessageError) as ex:
             _ = ErrorMessage.write(json_obj)
         assert "serialised" in str(ex)
+
+
+class TestInputValidation:
+    def setup_method(self):
+        self.configuration = Configuration.from_file(
+            "tests/config/example_configuration.yaml"
+        )
+
+    def test_booleans(self):
+        # see https://docs.pydantic.dev/latest/usage/types/booleans/
+        pydantic_accepts = [
+            True,
+            False,
+            1,
+            0,
+            "0",
+            "off",
+            "f",
+            "false",
+            "n",
+            "no",
+            "1",
+            "on",
+            "t",
+            "true",
+            "y",
+            "yes",
+        ]
+        bad_values = ["foo", 23, None]
+
+        for g in pydantic_accepts:
+            msg_obj = CommandMessage("evgBatteryModeCoil", g, self.configuration)
+            assert msg_obj.validate(), f"Value {g} is not considered a valid boolean"
+
+        for b in bad_values:
+            msg_obj = CommandMessage("evgBatteryModeCoil", b, self.configuration)
+            with pytest.raises(InvalidMessageError) as ex:
+                msg_obj.validate()
+            assert "invalid" in str(ex), f"Value {b} is considered a valid boolean"
+
+    def test_ints(self):
+        # Added for coverage, validate is not yet implemented for ints
+        for v in [100]:
+            msg_obj = CommandMessage("evgBatteryMode", v, self.configuration)
+            assert msg_obj.validate(), f"Value {v} is not considered a valid integer"

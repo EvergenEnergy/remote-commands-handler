@@ -58,6 +58,7 @@ class MessageValidator:
                 raise InvalidMessageError(
                     f"The {input_type.lower()} value {value!r} is invalid."
                 )
+        return True
 
 
 class ErrorMessage:
