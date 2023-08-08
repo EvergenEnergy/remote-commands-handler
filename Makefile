@@ -12,3 +12,6 @@ e2etest:
 coverage:
 	poetry run coverage run --source=main.py --source=app -m pytest -m "not end_to_end"
 	poetry run coverage report
+
+yammlint:
+	poetry run yamllint -c .yamllint . -f parsable
