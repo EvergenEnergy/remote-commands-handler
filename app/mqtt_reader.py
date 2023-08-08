@@ -10,7 +10,8 @@ from typing import Callable
 import paho.mqtt.client as mqtt
 
 from app.message import CommandMessage
-from app.exceptions import InvalidMessageError
+from app.configuration import Configuration
+from app.exceptions import InvalidMessageError, UnknownCommandError
 from app.error_handler import ErrorHandler
 
 
@@ -21,28 +22,28 @@ def _decode_message(message):
 class MqttReader:
     def __init__(
         self,
-        host: str,
-        port: int,
-        topics: list[str],
+        configuration: Configuration,
         client: mqtt.Client,
         error_handler: ErrorHandler,
     ) -> None:
-        self.host = host
-        self.port = port
+        self.configuration = configuration
         self.error_handler = error_handler
         self._on_message_callbacks = []
-        self._topics = topics
         self._client = client
+
+        self._host = configuration.get_mqtt_settings().host
+        self._port = configuration.get_mqtt_settings().port
+        self._topics = [configuration.mqtt_settings.command_topic]
 
     def add_message_callback(self, f: Callable[[str], None]):
         self._on_message_callbacks.append(f)
 
     def connect(self) -> None:
         try:
-            self._client.connect(self.host, self.port)
+            self._client.connect(self._host, self._port)
             return True
         except OSError as e:
-            ex = OSError(f"Cannot connect to MQTT broker at {self.host}:{self.port}")
+            ex = OSError(f"Cannot connect to MQTT broker at {self._host}:{self._port}")
             raise ex from e
 
     def stop(self) -> None:
@@ -67,10 +68,19 @@ class MqttReader:
             try:
                 try:
                     msg_str = _decode_message(message)
-                    msg_obj = CommandMessage.read(msg_str)
+                    msg_dict = CommandMessage.read(msg_str)
+                    msg_obj = CommandMessage(
+                        msg_dict["action"], msg_dict["value"], self.configuration
+                    )
+                    msg_obj.validate()
                 except InvalidMessageError as ex:
                     self.error_handler.publish(
                         self.error_handler.Category.INVALID_MESSAGE, str(ex)
+                    )
+                    return
+                except UnknownCommandError as ex:
+                    self.error_handler.publish(
+                        self.error_handler.Category.UNKNOWN_COMMAND, str(ex)
                     )
                     return
                 for callback in self._on_message_callbacks:

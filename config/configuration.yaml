@@ -1,3 +1,4 @@
+---
 site_settings:
   site_name: localsite
   serial_number: SERIAL_123
@@ -10,6 +11,13 @@ modbus_settings:
   host: pymodbus
   port: 5020
 modbus_mapping:
+  ## Configuration for Holding Registers
+  ##
+  ## Each holding register can hold a numeric value represented by a name and address.
+  ## Each register must be configured with the correct data type, endianness and scale factor
+  ## consistent with the input data that will be stored in it.
+  ##
+  ## The configuration settings are:
   ## name        - the variable name
   ## byte_order  - the ordering of bytes
   ##  |---AB, ABCD   - Big Endian
@@ -22,51 +30,53 @@ modbus_mapping:
   ##               FLOAT32, FIXED, UFIXED (fixed-point representation on input)
   ## scale       - the final numeric variable representation
   ## address     - variable address
+  ##
+  ## The following are given as examples. Replace with your own values.
   holding_registers:
-    - name: evgBatteryMode
-      byte_order: AB  # Fill this in
-      data_type: INT16  # Fill this in
-      scale: 1.0  # Fill this in
-      address: [0]  # Fill this in with actual Modbus register address for evgBatteryMode
     - name: evgBatteryTargetPowerWatts
-      byte_order: AB  # Fill this in`
-      data_type: INT16  # Fill this in
-      scale: 1.0  # Fill this in
-      address: [1]  # Fill this in with actual Modbus register address for evgBatteryTargetPowerWatts
+      byte_order: AB
+      data_type: INT16
+      scale: 1.0
+      address: [1]
     - name: evgBatteryTargetSOCPercent
-      byte_order: AB  # Fill this in
-      data_type: INT16  # Fill this in
-      scale: 1.0  # Fill this in
-      address: [2]  # Fill this in with actual Modbus register address for evgBatteryTargetSOCPercent
+      byte_order: AB
+      data_type: INT16
+      scale: 1.0
+      address: [2]
     - name: testRegister
-      byte_order: AB  # Fill this in
-      data_type: INT16  # Fill this in
-      scale: 1.0  # Fill this in
-      address: [1]  # Fill this in with actual Modbus register address for evgBatteryTargetPowerWatts
+      byte_order: AB
+      data_type: INT16
+      scale: 1.0
+      address: [1]
     - name: testFloatRegister
-      byte_order: AB  # Fill this in
-      data_type: FLOAT32-IEEE  # Fill this in
-      scale: 1.0  # Fill this in
-      address: [2]  # Fill this in with actual Modbus register address for evgBatteryTargetPowerWatts
+      byte_order: AB
+      data_type: FLOAT32-IEEE
+      scale: 1.0
+      address: [2]
     - name: testFloat64Register
-      byte_order: AB  # Fill this in
-      data_type: FLOAT64-IEEE  # Fill this in
-      scale: 1.0  # Fill this in
-      address: [3]  # Fill this in with actual Modbus register address for evgBatteryTargetPowerWatts
+      byte_order: AB
+      data_type: FLOAT64-IEEE
+      scale: 1.0
+      address: [3]
     - name: testInt64Register
-      byte_order: AB  # Fill this in
-      data_type: INT64  # Fill this in
-      scale: 1.0  # Fill this in
-      address: [20]  # Fill this in with actual Modbus register address for evgBatteryTargetPowerWatts
+      byte_order: AB
+      data_type: INT64
+      scale: 1.0
+      address: [20]
     - name: testUInt64Register
-      byte_order: AB  # Fill this in
-      data_type: UINT64  # Fill this in
-      scale: 1.0  # Fill this in
-      address: [30]  # Fill this in with actual Modbus register address for evgBatteryTargetPowerWatts
+      byte_order: AB
+      data_type: UINT64
+      scale: 1.0
+      address: [30]
+  ## Configuration for Coils
+  ##
+  ## Coils hold boolean values and accept any of the following forms:
+  ## True   - boolean True, integer 1, or strings '1', 'on', 't', 'true', 'y', 'yes'
+  ## False  - boolean False, integer 0, or strings '0', 'off', 'f', 'false', 'n', 'no'
+  ##
+  ## The following are given as examples. Replace with your own values.
   coils:
-    - name: evgBatteryModeCoil  # Assuming 'evgBatteryMode' is also represented as a coil
-      address: [501]  # Fill this in with actual Modbus register address for the coil
-    - name: evgBatteryTargetPowerWattsCoil  # Assuming 'evgBatteryTargetPowerWatts' is also represented as a coil
-      address: [502]  # Fill this in with actual Modbus register address for the coil
-    - name: evgBatteryTargetSOCPercentCoil  # Assuming 'evgBatteryTargetSOCPercent' is also represented as a coil
-      address: [503]  # Fill this in with actual Modbus register address for the coil
+    - name: activePowerMode
+      address: [501]
+    - name: reactivePowerMode
+      address: [502]

@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 from pymodbus.client import ModbusTcpClient
 from pymodbus.exceptions import ModbusException
 from app.memory_order import MemoryOrder
+from app.message import CommandMessage
 from app.modbus_client import ModbusClient
 from app.configuration import (
     Coil,
@@ -31,7 +32,7 @@ class TestModbusClient:
         self.mock_client = MagicMock(spec=ModbusTcpClient)
         self.mock_error_handler = MagicMock(spec=ErrorHandler)
 
-        configuration = Configuration(
+        self.configuration = Configuration(
             self.coils,
             self.holding_registers,
             {},
@@ -40,7 +41,7 @@ class TestModbusClient:
         )
 
         self.modbus_client = ModbusClient(
-            configuration,
+            self.configuration,
             self.mock_client,
             self.mock_error_handler,
         )
@@ -49,18 +50,17 @@ class TestModbusClient:
     def test_coils(self, coil_value):
         coil_list = [coil_value] * 2
         for coil in self.coils:
-            sent = self.modbus_client.write_command(coil.name, coil_value)
+            msg = CommandMessage(coil.name, coil_value, self.configuration)
+            sent = self.modbus_client.write_command(msg)
             self.mock_client.write_coil.assert_called_with(
                 coil.address[0], coil_value, 1
             )
             assert sent == 1
 
-            sent = self.modbus_client.write_command(coil.name, coil_list)
+            msg = CommandMessage(coil.name, coil_list, self.configuration)
+            sent = self.modbus_client.write_command(msg)
             self.mock_client.write_coils.assert_called_with(coil.address[0], coil_list)
             assert sent == 2
-
-        assert self.modbus_client.write_command("bad_coil", coil_value) == 0
-        assert self.modbus_client.write_command("bad_coil", coil_list) == 0
 
     def test_registers(self):
         for register in self.holding_registers:
@@ -68,43 +68,47 @@ class TestModbusClient:
                 value = 10
             elif "FLOAT" in register.data_type:
                 value = 32.3
-            sent = self.modbus_client.write_command(register.name, value)
+            sent = self.modbus_client.write_command(
+                CommandMessage(register.name, value, self.configuration)
+            )
             assert sent == 1
         assert self.mock_client.write_registers.call_count == len(
             self.holding_registers
         )
 
-        assert self.modbus_client.write_command("bad_register", 54) == 0
-
     def test_write_command(self):
         test_register = self.holding_registers[0]
-        self.modbus_client.write_command(test_register.name, 0)
+        self.modbus_client.write_command(
+            CommandMessage(test_register.name, 0, self.configuration)
+        )
         self.mock_client.write_registers.assert_called_with(1, [0], 1)
 
         test_coil = self.coils[0]
-        self.modbus_client.write_command(test_coil.name, True)
-        self.mock_client.write_coil.assert_called_with(1, True, 1)
-
-        self.modbus_client.write_command("bad_register", 54)
-        self.mock_error_handler.publish.assert_called_with(
-            self.mock_error_handler.Category.UNKNOWN_COMMAND,
-            "No coil or register found to match 'bad_register'",
+        self.modbus_client.write_command(
+            CommandMessage(test_coil.name, True, self.configuration)
         )
+        self.mock_client.write_coil.assert_called_with(1, True, 1)
 
     def test_connect_failure(self):
         self.mock_client.connect.side_effect = ModbusException("could not connect")
         test_coil = self.coils[0]
         with pytest.raises(ModbusClientError) as ex:
-            self.modbus_client.write_command(test_coil.name, True)
+            self.modbus_client.write_command(
+                CommandMessage(test_coil.name, True, self.configuration)
+            )
         assert "could not connect" in str(ex.value)
 
         with pytest.raises(ModbusClientError) as ex:
-            self.modbus_client.write_command(test_coil.name, [True, False])
+            self.modbus_client.write_command(
+                CommandMessage(test_coil.name, [True, False], self.configuration)
+            )
         assert "could not connect" in str(ex.value)
 
         test_register = self.holding_registers[0]
         with pytest.raises(ModbusClientError) as ex:
-            self.modbus_client.write_command(test_register.name, 0)
+            self.modbus_client.write_command(
+                CommandMessage(test_register.name, 0, self.configuration)
+            )
         assert "could not connect" in str(ex.value)
 
         self.mock_client.connect.side_effect = None
@@ -127,7 +131,9 @@ class TestModbusClient:
             self.mock_error_handler,
         )
         test_register = self.holding_registers[0]
-        modbus_client.write_command(test_register.name, 0)
+        modbus_client.write_command(
+            CommandMessage(test_register.name, 0, self.configuration)
+        )
         self.mock_error_handler.publish.assert_called_with(
             self.mock_error_handler.Category.INVALID_MESSAGE, "unknown data type FOO"
         )

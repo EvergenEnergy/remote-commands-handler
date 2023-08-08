@@ -59,9 +59,7 @@ def setup_mqtt_client(
     configuration: Configuration, error_handler: ErrorHandler
 ) -> MqttReader:
     return MqttReader(
-        configuration.get_mqtt_settings().host,
-        configuration.get_mqtt_settings().port,
-        [configuration.mqtt_settings.command_topic],
+        configuration,
         mqtt.Client(),
         error_handler,
     )
@@ -94,7 +92,7 @@ def main():
     mqtt_reader = setup_mqtt_client(configuration, error_handler)
 
     def write_to_modbus(message):
-        modbus_client.write_command(message["action"], message["value"])
+        modbus_client.write_command(message)
 
     mqtt_reader.add_message_callback(write_to_modbus)
 
