@@ -18,6 +18,11 @@ from app.exceptions import ModbusClientError
 import pytest
 
 
+class MockModbusResponse:
+    def isError(self):
+        return False
+
+
 class TestModbusClient:
     def setup_method(self):
         self.coils = [Coil("test_coil", [1])]
@@ -30,6 +35,9 @@ class TestModbusClient:
         self.site_settings = SiteSettings("localhost", "DEV123")
         self.modbus_settings = ModbusSettings("localhost", 5020)
         self.mock_client = MagicMock(spec=ModbusTcpClient)
+        self.mock_client.write_coil.return_value = MockModbusResponse()
+        self.mock_client.write_coils.return_value = MockModbusResponse()
+        self.mock_client.write_registers.return_value = MockModbusResponse()
         self.mock_error_handler = MagicMock(spec=ErrorHandler)
 
         self.configuration = Configuration(
@@ -93,24 +101,25 @@ class TestModbusClient:
         self.mock_client.connect.side_effect = ModbusException("could not connect")
         test_coil = self.coils[0]
         with pytest.raises(ModbusClientError) as ex:
-            self.modbus_client.write_command(
-                CommandMessage(test_coil.name, True, self.configuration)
-            )
+            self.modbus_client._write_coil(test_coil.name, True)
         assert "could not connect" in str(ex.value)
 
         with pytest.raises(ModbusClientError) as ex:
-            self.modbus_client.write_command(
-                CommandMessage(test_coil.name, [True, False], self.configuration)
-            )
+            self.modbus_client._write_coils(test_coil.name, [True, False])
         assert "could not connect" in str(ex.value)
 
         test_register = self.holding_registers[0]
         with pytest.raises(ModbusClientError) as ex:
-            self.modbus_client.write_command(
-                CommandMessage(test_register.name, 0, self.configuration)
-            )
+            self.modbus_client._write_register(test_register.name, 0)
         assert "could not connect" in str(ex.value)
 
+        self.modbus_client.write_command(
+            CommandMessage(test_coil.name, True, self.configuration)
+        )
+        self.mock_error_handler.publish.assert_called_with(
+            self.mock_error_handler.Category.MODBUS_ERROR,
+            "Modbus Error: could not connect",
+        )
         self.mock_client.connect.side_effect = None
 
     def test_bad_payload(self):
