@@ -50,8 +50,12 @@ class ModbusClient:
         if coil_configuration:
             try:
                 self._client.connect()
-                self._client.write_coils(coil_configuration.address[0], value)
+                response = self._client.write_coils(
+                    coil_configuration.address[0], value
+                )
                 self._client.close()
+                if response.isError():
+                    raise ModbusClientError(response)
                 logging.debug(f"wrote to coil {name}, value: {value!r}")
                 return len(value)
             except ModbusException as ex:
@@ -62,8 +66,12 @@ class ModbusClient:
         if coil_configuration:
             try:
                 self._client.connect()
-                self._client.write_coil(coil_configuration.address[0], value, 1)
+                response = self._client.write_coil(
+                    coil_configuration.address[0], value, 1
+                )
                 self._client.close()
+                if response.isError():
+                    raise ModbusClientError(response)
                 logging.debug(f"wrote to coil {name}, value: {value!r}")
                 return 1
             except ModbusException as ex:
@@ -78,11 +86,13 @@ class ModbusClient:
                 raise InvalidMessageError(ex)
             try:
                 self._client.connect()
-                self._client.write_registers(
+                response = self._client.write_registers(
                     holding_register_configuration.address[0], payload, 1
                 )
                 self._client.close()
                 logging.debug(f"wrote to register {name}, value: {value!r}")
+                if response.isError():
+                    raise ModbusClientError(response)
                 return 1
             except ModbusException as ex:
                 raise ModbusClientError(ex)
@@ -102,7 +112,7 @@ class ModbusClient:
                 self.error_handler.publish(
                     self.error_handler.Category.MODBUS_ERROR, str(ex)
                 )
-                raise ex
+                return 0
 
         if message.input_type == InputTypes.REGISTER:
             try:
@@ -116,7 +126,7 @@ class ModbusClient:
                 self.error_handler.publish(
                     self.error_handler.Category.MODBUS_ERROR, str(ex)
                 )
-                raise ex
+                return 0
 
         return sent
 
