@@ -200,6 +200,11 @@ def test_validate_config_data():
             _validate_config(c)
         assert "address" in str(ex.value)
 
+    for datatype in ("coils", "holding_registers"):
+        c = deepcopy(config)
+        del c["modbus_mapping"][datatype]
+        _validate_config(c)
+
 
 def test_key_error_in_config_parsing(monkeypatch):
     """

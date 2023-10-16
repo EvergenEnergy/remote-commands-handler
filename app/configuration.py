@@ -255,6 +255,10 @@ def _validate_config(config: dict):
             ), "The error topic must not contain a wildcard character"
 
         mapping = config["modbus_mapping"]
+        if mapping.get("coils") is None:
+            mapping["coils"] = []
+        if mapping.get("holding_registers") is None:
+            mapping["holding_registers"] = []
         keys_defined = sum(
             [len(mapping.get(k, [])) for k in ("holding_registers", "coils")]
         )
