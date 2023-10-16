@@ -18,9 +18,17 @@ from app.exceptions import ModbusClientError
 import pytest
 
 
-class MockModbusResponse:
+class MockGoodModbusResponse:
     def isError(self):
         return False
+
+
+class MockBadModbusResponse:
+    def isError(self):
+        return True
+
+    def __str__(self):
+        return "bad response"
 
 
 class TestModbusClient:
@@ -35,9 +43,9 @@ class TestModbusClient:
         self.site_settings = SiteSettings("localhost", "DEV123")
         self.modbus_settings = ModbusSettings("localhost", 5020)
         self.mock_client = MagicMock(spec=ModbusTcpClient)
-        self.mock_client.write_coil.return_value = MockModbusResponse()
-        self.mock_client.write_coils.return_value = MockModbusResponse()
-        self.mock_client.write_registers.return_value = MockModbusResponse()
+        self.mock_client.write_coil.return_value = MockGoodModbusResponse()
+        self.mock_client.write_coils.return_value = MockGoodModbusResponse()
+        self.mock_client.write_registers.return_value = MockGoodModbusResponse()
         self.mock_error_handler = MagicMock(spec=ErrorHandler)
 
         self.configuration = Configuration(
@@ -145,4 +153,23 @@ class TestModbusClient:
         )
         self.mock_error_handler.publish.assert_called_with(
             self.mock_error_handler.Category.INVALID_MESSAGE, "unknown data type FOO"
+        )
+
+    def test_command_failure(self):
+        test_register = self.holding_registers[0]
+        self.mock_client.write_registers.return_value = MockBadModbusResponse()
+        self.modbus_client.write_command(
+            CommandMessage(test_register.name, 0, self.configuration)
+        )
+        self.mock_error_handler.publish.assert_called_with(
+            self.mock_error_handler.Category.MODBUS_ERROR, "bad response"
+        )
+
+        test_coil = self.coils[0]
+        self.mock_client.write_coil.return_value = MockBadModbusResponse()
+        self.modbus_client.write_command(
+            CommandMessage(test_coil.name, True, self.configuration)
+        )
+        self.mock_error_handler.publish.assert_called_with(
+            self.mock_error_handler.Category.MODBUS_ERROR, "bad response"
         )
