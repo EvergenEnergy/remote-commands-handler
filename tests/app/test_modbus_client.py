@@ -173,3 +173,11 @@ class TestModbusClient:
         self.mock_error_handler.publish.assert_called_with(
             self.mock_error_handler.Category.MODBUS_ERROR, "bad response"
         )
+
+        self.mock_client.write_coils.return_value = MockBadModbusResponse()
+        self.modbus_client.write_command(
+            CommandMessage(test_coil.name, [True], self.configuration)
+        )
+        self.mock_error_handler.publish.assert_called_with(
+            self.mock_error_handler.Category.MODBUS_ERROR, "bad response"
+        )
