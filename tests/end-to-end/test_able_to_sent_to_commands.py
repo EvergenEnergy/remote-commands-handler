@@ -4,6 +4,7 @@ import json
 import random
 
 import pytest
+from pytest import approx
 
 import paho.mqtt.client as mqtt
 from pymodbus.client import ModbusTcpClient
@@ -48,8 +49,8 @@ def test_able_to_update_coil(
 def test_able_to_send_integer16(
     mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient
 ):
-    random_value = random.randint(0, 30)
-    message_dictionary = {"action": "testRegister", "value": random_value}
+    random_value = random.randint(20000, 30000)
+    message_dictionary = {"action": "testInt16Register", "value": random_value}
 
     message = json.dumps(message_dictionary)
 
@@ -64,7 +65,7 @@ def test_able_to_send_integer16(
 
 @pytest.mark.end_to_end
 def test_able_to_send_float32(mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient):
-    random_value = random.uniform(0, 30)
+    random_value = random.uniform(20000, 30000)
     message_dictionary = {"action": "testFloatRegister", "value": random_value}
 
     message = json.dumps(message_dictionary)
@@ -73,20 +74,20 @@ def test_able_to_send_float32(mqtt_client: mqtt.Client, modbus_client: ModbusTcp
 
     time.sleep(1)
 
-    value = modbus_client.read_holding_registers(2, 4, 1)
+    value = modbus_client.read_holding_registers(2, 2, 1)
 
     decoder = BinaryPayloadDecoder.fromRegisters(
         value.registers, Endian.Big, wordorder=Endian.Big
     )
 
-    assert round(decoder.decode_32bit_float(), 4) == round(random_value, 4)
+    assert decoder.decode_32bit_float() == approx(random_value, rel=1e-6)
 
 
 @pytest.mark.end_to_end
 def test_able_to_send_command_with_float64(
     mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient
 ):
-    random_value = random.uniform(0, 30)
+    random_value = random.uniform(200000, 300000)
     message_dictionary = {"action": "testFloat64Register", "value": random_value}
 
     message = json.dumps(message_dictionary)
@@ -95,7 +96,7 @@ def test_able_to_send_command_with_float64(
 
     time.sleep(1)
 
-    value = modbus_client.read_holding_registers(3, 8, 1)
+    value = modbus_client.read_holding_registers(3, 4, 1)
 
     decoder = BinaryPayloadDecoder.fromRegisters(
         value.registers, Endian.Big, wordorder=Endian.Big
@@ -107,7 +108,7 @@ def test_able_to_send_command_with_float64(
 def test_able_to_send_integer64(
     mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient
 ):
-    random_value = random.randint(0, 100)
+    random_value = random.randint(40000, 50000)
     message_dictionary = {"action": "testInt64Register", "value": random_value}
 
     message = json.dumps(message_dictionary)
@@ -127,7 +128,7 @@ def test_able_to_send_integer64(
 
 @pytest.mark.end_to_end
 def test_able_to_send_uint64(mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient):
-    random_value = random.randint(0, 100)
+    random_value = random.randint(400000, 500000)
     message_dictionary = {"action": "testUInt64Register", "value": random_value}
 
     message = json.dumps(message_dictionary)
@@ -136,7 +137,7 @@ def test_able_to_send_uint64(mqtt_client: mqtt.Client, modbus_client: ModbusTcpC
 
     time.sleep(1)
 
-    value = modbus_client.read_holding_registers(30, 8, 1)
+    value = modbus_client.read_holding_registers(30, 4, 1)
 
     decoder = BinaryPayloadDecoder.fromRegisters(
         value.registers, Endian.Big, wordorder=Endian.Big
