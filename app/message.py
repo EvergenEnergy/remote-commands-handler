@@ -30,8 +30,7 @@ class CommandMessage:
         MessageValidator.validate(self.input_type, self.value)
 
     def transform(self):
-        #MessageValidator.validate(self.input_type, self.value)
-        pass
+        self.value = MessageTransformer.transform(self.configuration, self.value)
 
     @classmethod
     def read(cls, message_str: str):
@@ -62,6 +61,12 @@ class MessageValidator:
                 raise InvalidMessageError(
                     f"The {input_type.lower()} value {value!r} is invalid."
                 )
+
+
+class MessageTransformer:
+    @classmethod
+    def transform(cls, configuration, value):
+        return value
 
 
 class ErrorMessage:
