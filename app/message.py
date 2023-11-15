@@ -29,6 +29,10 @@ class CommandMessage:
     def validate(self):
         MessageValidator.validate(self.input_type, self.value)
 
+    def transform(self):
+        #MessageValidator.validate(self.input_type, self.value)
+        pass
+
     @classmethod
     def read(cls, message_str: str):
         try:

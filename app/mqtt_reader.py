@@ -73,6 +73,7 @@ class MqttReader:
                         msg_dict["action"], msg_dict["value"], self.configuration
                     )
                     msg_obj.validate()
+                    msg_obj.transform()
                 except InvalidMessageError as ex:
                     self.error_handler.publish(
                         self.error_handler.Category.INVALID_MESSAGE, str(ex)
