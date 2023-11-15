@@ -11,6 +11,8 @@ from pymodbus.client import ModbusTcpClient
 from pymodbus.payload import BinaryPayloadDecoder
 from pymodbus.constants import Endian
 
+from app.configuration import Configuration
+
 
 @pytest.fixture(scope="module")
 def mqtt_client():
@@ -28,29 +30,40 @@ def modbus_client():
     client.close()  # close after tests
 
 
+@pytest.fixture(scope="module")
+def config():
+    yield Configuration.from_file("tests/end-to-end/configuration.yaml")
+
+
 @pytest.mark.end_to_end
 @pytest.mark.parametrize("coil_value", [False, True])
 def test_able_to_update_coil(
-    mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient, coil_value: bool
+    mqtt_client: mqtt.Client,
+    modbus_client: ModbusTcpClient,
+    config: Configuration,
+    coil_value: bool,
 ):
-    message_dictionary = {"action": "testCoil", "value": coil_value}
+    coil_name = "testCoil"
+    message_dictionary = {"action": coil_name, "value": coil_value}
     message = json.dumps(message_dictionary)
 
     mqtt_client.publish("commands/test", message)
 
     time.sleep(1)
 
-    value = modbus_client.read_coils(504, 1, 1)
+    coil = config.get_coil(coil_name)
+    value = modbus_client.read_coils(coil.address[0], len(coil.address), 1)
 
     assert value.bits[0] is coil_value
 
 
 @pytest.mark.end_to_end
 def test_able_to_send_integer16(
-    mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient
+    mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient, config: Configuration
 ):
+    reg_name = "testInt16Register"
     random_value = random.randint(20000, 30000)
-    message_dictionary = {"action": "testInt16Register", "value": random_value}
+    message_dictionary = {"action": reg_name, "value": random_value}
 
     message = json.dumps(message_dictionary)
 
@@ -58,15 +71,21 @@ def test_able_to_send_integer16(
 
     time.sleep(1)
 
-    value = modbus_client.read_holding_registers(1, 1, 1)
+    register = config.get_holding_register(reg_name)
+    value = modbus_client.read_holding_registers(
+        register.address[0], len(register.address), 1
+    )
 
     assert value.registers[0] == random_value
 
 
 @pytest.mark.end_to_end
-def test_able_to_send_float32(mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient):
+def test_able_to_send_float32(
+    mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient, config: Configuration
+):
+    reg_name = "testFloatRegister"
     random_value = random.uniform(20000, 30000)
-    message_dictionary = {"action": "testFloatRegister", "value": random_value}
+    message_dictionary = {"action": reg_name, "value": random_value}
 
     message = json.dumps(message_dictionary)
 
@@ -74,7 +93,10 @@ def test_able_to_send_float32(mqtt_client: mqtt.Client, modbus_client: ModbusTcp
 
     time.sleep(1)
 
-    value = modbus_client.read_holding_registers(2, 2, 1)
+    register = config.get_holding_register(reg_name)
+    value = modbus_client.read_holding_registers(
+        register.address[0], len(register.address), 1
+    )
 
     decoder = BinaryPayloadDecoder.fromRegisters(
         value.registers, Endian.Big, wordorder=Endian.Big
@@ -85,10 +107,11 @@ def test_able_to_send_float32(mqtt_client: mqtt.Client, modbus_client: ModbusTcp
 
 @pytest.mark.end_to_end
 def test_able_to_send_command_with_float64(
-    mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient
+    mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient, config: Configuration
 ):
+    reg_name = "testFloat64Register"
     random_value = random.uniform(200000, 300000)
-    message_dictionary = {"action": "testFloat64Register", "value": random_value}
+    message_dictionary = {"action": reg_name, "value": random_value}
 
     message = json.dumps(message_dictionary)
 
@@ -96,7 +119,10 @@ def test_able_to_send_command_with_float64(
 
     time.sleep(1)
 
-    value = modbus_client.read_holding_registers(3, 4, 1)
+    register = config.get_holding_register(reg_name)
+    value = modbus_client.read_holding_registers(
+        register.address[0], len(register.address), 1
+    )
 
     decoder = BinaryPayloadDecoder.fromRegisters(
         value.registers, Endian.Big, wordorder=Endian.Big
@@ -106,10 +132,11 @@ def test_able_to_send_command_with_float64(
 
 @pytest.mark.end_to_end
 def test_able_to_send_integer64(
-    mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient
+    mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient, config: Configuration
 ):
+    reg_name = "testInt64Register"
     random_value = random.randint(40000, 50000)
-    message_dictionary = {"action": "testInt64Register", "value": random_value}
+    message_dictionary = {"action": reg_name, "value": random_value}
 
     message = json.dumps(message_dictionary)
 
@@ -117,7 +144,10 @@ def test_able_to_send_integer64(
 
     time.sleep(1)
 
-    value = modbus_client.read_holding_registers(20, 8, 1)
+    register = config.get_holding_register(reg_name)
+    value = modbus_client.read_holding_registers(
+        register.address[0], len(register.address), 1
+    )
 
     decoder = BinaryPayloadDecoder.fromRegisters(
         value.registers, Endian.Big, wordorder=Endian.Big
@@ -127,9 +157,12 @@ def test_able_to_send_integer64(
 
 
 @pytest.mark.end_to_end
-def test_able_to_send_uint64(mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient):
+def test_able_to_send_uint64(
+    mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient, config: Configuration
+):
+    reg_name = "testUInt64Register"
     random_value = random.randint(400000, 500000)
-    message_dictionary = {"action": "testUInt64Register", "value": random_value}
+    message_dictionary = {"action": reg_name, "value": random_value}
 
     message = json.dumps(message_dictionary)
 
@@ -137,7 +170,10 @@ def test_able_to_send_uint64(mqtt_client: mqtt.Client, modbus_client: ModbusTcpC
 
     time.sleep(1)
 
-    value = modbus_client.read_holding_registers(30, 4, 1)
+    register = config.get_holding_register(reg_name)
+    value = modbus_client.read_holding_registers(
+        register.address[0], len(register.address), 1
+    )
 
     decoder = BinaryPayloadDecoder.fromRegisters(
         value.registers, Endian.Big, wordorder=Endian.Big
