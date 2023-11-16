@@ -30,7 +30,9 @@ class CommandMessage:
         MessageValidator.validate(self.input_type, self.value)
 
     def transform(self):
-        self.value = MessageTransformer.transform(self.configuration, self.value)
+        if self.input_type == InputTypes.REGISTER:
+            self.value = MessageTransformer.transform(self.configuration, self.value)
+            MessageValidator.validate(self.input_type, self.value)
 
     @classmethod
     def read(cls, message_str: str):
@@ -62,10 +64,20 @@ class MessageValidator:
                     f"The {input_type.lower()} value {value!r} is invalid."
                 )
 
+        # TODO validate register inputs
+
 
 class MessageTransformer:
     @classmethod
     def transform(cls, configuration, value):
+        tvalue = value
+        if configuration.scale:
+            value = configuration.scale * value
+            if "INT" in configuration.data_type:
+                value = int(value)
+        logging.debug(
+            f"transformed value {value} with config {configuration} to {tvalue}"
+        )
         return value
 
 

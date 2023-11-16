@@ -35,6 +35,15 @@ def config():
     yield Configuration.from_file("tests/end-to-end/configuration.yaml")
 
 
+def publish_message(mqtt_client: mqtt.Client, name: str, value: str):
+    message_dictionary = {"action": name, "value": value}
+    message = json.dumps(message_dictionary)
+
+    mqtt_client.publish("commands/test", message)
+
+    time.sleep(1)
+
+
 @pytest.mark.end_to_end
 @pytest.mark.parametrize("coil_value", [False, True])
 def test_able_to_update_coil(
@@ -44,12 +53,7 @@ def test_able_to_update_coil(
     coil_value: bool,
 ):
     coil_name = "testCoil"
-    message_dictionary = {"action": coil_name, "value": coil_value}
-    message = json.dumps(message_dictionary)
-
-    mqtt_client.publish("commands/test", message)
-
-    time.sleep(1)
+    publish_message(mqtt_client, coil_name, coil_value)
 
     coil = config.get_coil(coil_name)
     value = modbus_client.read_coils(coil.address[0], len(coil.address), 1)
@@ -63,13 +67,7 @@ def test_able_to_send_integer16(
 ):
     reg_name = "testInt16Register"
     random_value = random.randint(20000, 30000)
-    message_dictionary = {"action": reg_name, "value": random_value}
-
-    message = json.dumps(message_dictionary)
-
-    mqtt_client.publish("commands/test", message)
-
-    time.sleep(1)
+    publish_message(mqtt_client, reg_name, random_value)
 
     register = config.get_holding_register(reg_name)
     value = modbus_client.read_holding_registers(
@@ -85,13 +83,7 @@ def test_able_to_send_float32(
 ):
     reg_name = "testFloatRegister"
     random_value = random.uniform(20000, 30000)
-    message_dictionary = {"action": reg_name, "value": random_value}
-
-    message = json.dumps(message_dictionary)
-
-    mqtt_client.publish("commands/test", message)
-
-    time.sleep(1)
+    publish_message(mqtt_client, reg_name, random_value)
 
     register = config.get_holding_register(reg_name)
     value = modbus_client.read_holding_registers(
@@ -111,13 +103,7 @@ def test_able_to_send_command_with_float64(
 ):
     reg_name = "testFloat64Register"
     random_value = random.uniform(200000, 300000)
-    message_dictionary = {"action": reg_name, "value": random_value}
-
-    message = json.dumps(message_dictionary)
-
-    mqtt_client.publish("commands/test", message)
-
-    time.sleep(1)
+    publish_message(mqtt_client, reg_name, random_value)
 
     register = config.get_holding_register(reg_name)
     value = modbus_client.read_holding_registers(
@@ -136,13 +122,7 @@ def test_able_to_send_integer64(
 ):
     reg_name = "testInt64Register"
     random_value = random.randint(40000, 50000)
-    message_dictionary = {"action": reg_name, "value": random_value}
-
-    message = json.dumps(message_dictionary)
-
-    mqtt_client.publish("commands/test", message)
-
-    time.sleep(1)
+    publish_message(mqtt_client, reg_name, random_value)
 
     register = config.get_holding_register(reg_name)
     value = modbus_client.read_holding_registers(
@@ -162,13 +142,7 @@ def test_able_to_send_uint64(
 ):
     reg_name = "testUInt64Register"
     random_value = random.randint(400000, 500000)
-    message_dictionary = {"action": reg_name, "value": random_value}
-
-    message = json.dumps(message_dictionary)
-
-    mqtt_client.publish("commands/test", message)
-
-    time.sleep(1)
+    publish_message(mqtt_client, reg_name, random_value)
 
     register = config.get_holding_register(reg_name)
     value = modbus_client.read_holding_registers(
@@ -180,6 +154,59 @@ def test_able_to_send_uint64(
     )
 
     assert decoder.decode_64bit_uint() == random_value
+
+
+@pytest.mark.end_to_end
+@pytest.mark.parametrize("scale_direction", ["up", "down"])
+def test_scale_ints(
+    mqtt_client: mqtt.Client,
+    modbus_client: ModbusTcpClient,
+    config: Configuration,
+    scale_direction: str,
+):
+    reg_name = f"testScaled{scale_direction.title()}Int"
+    register = config.get_holding_register(reg_name)
+
+    test_values = {
+        "up": [(256, 2560)],
+        "down": [(2560, 2), (256, 0)],
+    }
+    for supplied, expected in test_values[scale_direction]:
+        publish_message(mqtt_client, reg_name, supplied)
+
+        value = modbus_client.read_holding_registers(
+            register.address[0], len(register.address), 1
+        )
+
+        assert value.registers[0] == expected
+
+
+@pytest.mark.end_to_end
+@pytest.mark.parametrize("scale_direction", ["up", "down"])
+def test_scale_floats(
+    mqtt_client: mqtt.Client,
+    modbus_client: ModbusTcpClient,
+    config: Configuration,
+    scale_direction: str,
+):
+    reg_name = f"testScaled{scale_direction.title()}Float"
+    test_values = {
+        "up": [(256.1, 25610), (0.0345, 3.45)],
+        "down": [(2560, 25.6), (2.56, 0.0256)],
+    }
+    for supplied, expected in test_values[scale_direction]:
+        publish_message(mqtt_client, reg_name, supplied)
+
+        register = config.get_holding_register(reg_name)
+        value = modbus_client.read_holding_registers(
+            register.address[0], len(register.address), 1
+        )
+
+        decoder = BinaryPayloadDecoder.fromRegisters(
+            value.registers, Endian.Big, wordorder=Endian.Big
+        )
+
+        assert decoder.decode_32bit_float() == approx(expected, rel=1e-6)
 
 
 @pytest.mark.end_to_end
@@ -207,6 +234,8 @@ def test_read_error_messages(mqtt_client: mqtt.Client, modbus_client: ModbusTcpC
 
     send_bad_command({"invalid": ["message", "structure"]})
     send_bad_command({"action": "NotARealCoil", "value": 0})
+    # initial value will be valid but scaled-up value will exceed datatype
+    send_bad_command({"action": "testScaledUpInt", "value": 30000})
 
     # Run the client loop to allow the callback to be executed
     mqtt_client.loop_start()
@@ -217,10 +246,14 @@ def test_read_error_messages(mqtt_client: mqtt.Client, modbus_client: ModbusTcpC
     with open(msg_log) as err_in:
         line1 = err_in.readline()
         line2 = err_in.readline()
+        line3 = err_in.readline()
     assert "InvalidMessage" in line1
     assert "Message is missing required components" in line1
     assert "UnknownCommand" in line2
     assert "No coil or register found to match 'NotARealCoil'" in line2
+    # TODO This should become a specific exception when we have better register validation
+    assert "UnhandledException" in line3
+    assert "format requires -32768 <= number <= 32767" in line3
 
     os.remove(msg_log)
 
