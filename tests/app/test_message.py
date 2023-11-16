@@ -60,6 +60,22 @@ class TestCommandMessage:
         assert "The coil value 'foo' is invalid" in str(ex.value)
         assert ex.type == InvalidMessageError
 
+    def test_scale_up(self):
+        msg = CommandMessage("evgBatteryTargetPowerWatts", 2000, self.configuration)
+        try:
+            msg.transform()
+        except InvalidMessageError:
+            assert False
+        assert msg.value == 20000
+
+    def test_scale_down(self):
+        msg = CommandMessage("evgBatteryTargetSOCPercent", 3456, self.configuration)
+        try:
+            msg.transform()
+        except InvalidMessageError:
+            assert False
+        assert msg.value == 34.56
+
 
 class TestErrorMessage:
     def test_good_err_message(self):
