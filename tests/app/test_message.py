@@ -62,18 +62,12 @@ class TestCommandMessage:
 
     def test_scale_up(self):
         msg = CommandMessage("evgBatteryTargetPowerWatts", 2000, self.configuration)
-        try:
-            msg.transform()
-        except InvalidMessageError:
-            assert False
+        msg.transform()
         assert msg.value == 20000
 
     def test_scale_down(self):
         msg = CommandMessage("evgBatteryTargetSOCPercent", 3456, self.configuration)
-        try:
-            msg.transform()
-        except InvalidMessageError:
-            assert False
+        msg.transform()
         assert msg.value == 34.56
 
 
