@@ -70,6 +70,19 @@ class TestCommandMessage:
         msg.transform()
         assert msg.value == 34.56
 
+    def test_invert(self):
+        msg = CommandMessage(
+            "evgBatteryTargetPowerWattsInverted", 4000, self.configuration
+        )
+        msg.transform()
+        assert msg.value == -4000
+
+    def test_scale_and_invert(self):
+        msg = CommandMessage("evgBatteryScaleAndInvert", 4567, self.configuration)
+        msg.transform()
+        assert isinstance(msg.value, int)
+        assert msg.value == -456
+
 
 class TestErrorMessage:
     def test_good_err_message(self):

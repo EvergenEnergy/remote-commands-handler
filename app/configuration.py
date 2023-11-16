@@ -54,6 +54,7 @@ class HoldingRegister:
     data_type: str
     scale: float
     address: list[int]
+    invert: bool = False
 
 
 @dataclass
@@ -213,6 +214,7 @@ def _holding_register_from_yaml_data(data: dict):
             register["data_type"],
             register.get("scale", 1.0),
             register["address"],
+            register.get("invert", False),
         )
         holding_registers.append(register)
 

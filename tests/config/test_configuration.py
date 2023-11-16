@@ -85,6 +85,13 @@ def test_get_holding_registers():
     assert evg_battery_target_soc_percent.scale == 0.01
     assert evg_battery_target_soc_percent.address == [3, 4]
     assert evg_battery_target_soc_percent.input_type == InputTypes.REGISTER
+    assert evg_battery_target_soc_percent.invert is False
+
+    evg_battery_target_power_watts = configuration.get_holding_register(
+        "evgBatteryTargetPowerWattsInverted"
+    )
+    assert evg_battery_target_power_watts.scale == 1.0
+    assert evg_battery_target_power_watts.invert is True
 
 
 def test_able_to_get_mqtt_settings():
