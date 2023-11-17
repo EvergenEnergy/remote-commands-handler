@@ -31,27 +31,47 @@ modbus_mapping:
       byte_order: AB
       data_type: INT16
       scale: 1.0
-      address: [1]
+      address: [3]
     - name: testFloatRegister
-      byte_order: AB
+      byte_order: ABCD
       data_type: FLOAT32-IEEE
       scale: 1.0
-      address: [2]
+      address: [6, 7]
     - name: testFloat64Register
-      byte_order: AB
+      byte_order: ABCD
       data_type: FLOAT64-IEEE
       scale: 1.0
-      address: [3]
+      address: [10, 11, 12, 13]
     - name: testInt64Register
-      byte_order: AB
+      byte_order: ABCD
       data_type: INT64
       scale: 1.0
-      address: [20]
+      address: [20, 21, 22, 23]
     - name: testUInt64Register
-      byte_order: AB
+      byte_order: ABCD
       data_type: UINT64
       scale: 1.0
-      address: [30]
+      address: [30, 31, 32, 33]
+    - name: testScaledUpInt
+      byte_order: AB
+      data_type: INT16
+      scale: 10.0
+      address: [40]
+    - name: testScaledDownInt
+      byte_order: AB
+      data_type: INT16
+      scale: 0.001
+      address: [45]
+    - name: testScaledUpFloat
+      byte_order: AB
+      data_type: FLOAT32-IEEE
+      scale: 100
+      address: [50, 51]
+    - name: testScaledDownFloat
+      byte_order: AB
+      data_type: FLOAT32-IEEE
+      scale: 0.01
+      address: [55, 56]
   coils:
     - name: evgBatteryModeCoil
       address: [501]

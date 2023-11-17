@@ -13,24 +13,24 @@ modbus_settings:
 modbus_mapping:
   holding_registers:
     - name: evgBatteryMode
-      byte_order: AB  # Fill this in
-      data_type: INT16  # Fill this in
-      scale: 1.0  # Fill this in
-      address: [0]  # Fill this in with actual Modbus register address for evgBatteryMode
+      byte_order: AB
+      data_type: INT16
+      scale: 1.0
+      address: [0]
     - name: evgBatteryTargetPowerWatts
-      byte_order: AB  # Fill this in
-      data_type: INT16  # Fill this in
-      scale: 1.0  # Fill this in
-      address: [1]  # Fill this in with actual Modbus register address for evgBatteryTargetPowerWatts
+      byte_order: AB
+      data_type: INT32
+      scale: 10.0
+      address: [1, 2]
     - name: evgBatteryTargetSOCPercent
-      byte_order: AB  # Fill this in
-      data_type: INT16  # Fill this in
-      scale: 1.0  # Fill this in
-      address: [2]  # Fill this in with actual Modbus register address for evgBatteryTargetSOCPercent
+      byte_order: AB
+      data_type: FLOAT32
+      scale: 0.01
+      address: [3, 4]
   coils:
-    - name: evgBatteryModeCoil  # Assuming 'evgBatteryMode' is also represented as a coil
-      address: [3]  # Fill this in with actual Modbus register address for the coil
-    - name: evgBatteryTargetPowerWattsCoil  # Assuming 'evgBatteryTargetPowerWatts' is also represented as a coil
-      address: [4]  # Fill this in with actual Modbus register address for the coil
-    - name: evgBatteryTargetSOCPercentCoil  # Assuming 'evgBatteryTargetSOCPercent' is also represented as a coil
-      address: [5]  # Fill this in with actual Modbus register address for the coil
+    - name: evgBatteryModeCoil
+      address: [10]
+    - name: evgBatteryTargetPowerWattsCoil
+      address: [11]
+    - name: evgBatteryTargetSOCPercentCoil
+      address: [12]
