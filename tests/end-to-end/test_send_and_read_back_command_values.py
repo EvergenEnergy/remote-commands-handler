@@ -285,8 +285,7 @@ def test_read_error_messages(mqtt_client: mqtt.Client, modbus_client: ModbusTcpC
     assert "Message is missing required components" in line1
     assert "UnknownCommand" in line2
     assert "No coil or register found to match 'NotARealCoil'" in line2
-    # TODO This should become a specific exception when we have better register validation
-    assert "UnhandledException" in line3
+    assert "InvalidMessage" in line3
     assert "format requires -32768 <= number <= 32767" in line3
 
     os.remove(msg_log)
