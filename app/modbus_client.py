@@ -23,6 +23,7 @@ Note:
 """
 
 import logging
+import struct
 
 from pymodbus.client import ModbusTcpClient
 from pymodbus.exceptions import ModbusException
@@ -82,7 +83,7 @@ class ModbusClient:
         if holding_register_configuration:
             try:
                 payload = _build_register_payload(holding_register_configuration, value)
-            except (AttributeError, RuntimeError) as ex:
+            except (AttributeError, RuntimeError, struct.error) as ex:
                 raise InvalidMessageError(ex)
             try:
                 self._client.connect()

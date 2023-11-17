@@ -75,6 +75,8 @@ class MessageTransformer:
             value = configuration.scale * value
             if "INT" in configuration.data_type:
                 value = int(value)
+        if configuration.invert_sign:
+            value = -1 * value
         logging.debug(
             f"transformed value {value} with config {configuration} to {tvalue}"
         )

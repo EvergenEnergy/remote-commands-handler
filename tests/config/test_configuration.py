@@ -85,6 +85,13 @@ def test_get_holding_registers():
     assert evg_battery_target_soc_percent.scale == 0.01
     assert evg_battery_target_soc_percent.address == [3, 4]
     assert evg_battery_target_soc_percent.input_type == InputTypes.REGISTER
+    assert evg_battery_target_soc_percent.invert_sign is False
+
+    evg_battery_target_power_watts = configuration.get_holding_register(
+        "evgBatteryTargetPowerWattsInverted"
+    )
+    assert evg_battery_target_power_watts.scale == 1.0
+    assert evg_battery_target_power_watts.invert_sign is True
 
 
 def test_able_to_get_mqtt_settings():
@@ -143,7 +150,7 @@ def test_get_coils():
 
 def test_get_registers():
     coils = []
-    holding_registers = [HoldingRegister("test", "AB", "STR", 1.0, [0])]
+    holding_registers = [HoldingRegister("test", "AB", "INT16", 1.0, [0])]
     mqtt_settings = MqttSettings("test", 100, "test")
     modbus_settings = ModbusSettings("localhost", 10)
     site_settings = SiteSettings("testsite", "testdevice")
@@ -210,6 +217,14 @@ def test_validate_config_data():
         c = deepcopy(config)
         del c["modbus_mapping"][datatype]
         _validate_config(c)
+
+    inverting_unsigned_int = deepcopy(config)
+    reg = inverting_unsigned_int["modbus_mapping"]["holding_registers"][0]
+    reg["invert_sign"] = True
+    reg["data_type"] = "UINT16"
+    with pytest.raises(ConfigurationFileInvalidError) as ex:
+        _validate_config(inverting_unsigned_int)
+    assert "cannot set invert_sign=True" in str(ex.value)
 
 
 def test_key_error_in_config_parsing(monkeypatch):
