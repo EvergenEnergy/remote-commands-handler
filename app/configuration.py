@@ -54,7 +54,7 @@ class HoldingRegister:
     data_type: str
     scale: float
     address: list[int]
-    invert: bool = False
+    invert_sign: bool = False
 
 
 @dataclass
@@ -214,7 +214,7 @@ def _holding_register_from_yaml_data(data: dict):
             register["data_type"],
             register.get("scale", 1.0),
             register["address"],
-            register.get("invert", False),
+            register.get("invert_sign", False),
         )
         holding_registers.append(register)
 
@@ -279,9 +279,9 @@ def _validate_config(config: dict):
                 assert (
                     key in ref
                 ), f"Holding register reference #{index} has no config setting for {key!r}"
-            if ref.get("invert"):
+            if ref.get("invert_sign"):
                 assert not ref["data_type"].startswith(
                     "UINT"
-                ), f"Holding register #{index} cannot set invert=True on an unsigned integer"
+                ), f"Holding register #{index} cannot set invert_sign=True on an unsigned integer"
     except (AssertionError, TypeError, ValueError) as ex:
         raise ConfigurationFileInvalidError(ex)

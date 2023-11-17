@@ -77,13 +77,13 @@ modbus_mapping:
       data_type: INT16
       scale: 1.0
       address: [60]
-      invert: True
+      invert_sign: True
     - name: testScaleAndInvert
       byte_order: AB
       data_type: FLOAT32-IEEE
       scale: 0.1
       address: [62, 63]
-      invert: True
+      invert_sign: True
   coils:
     - name: evgBatteryModeCoil
       address: [501]
