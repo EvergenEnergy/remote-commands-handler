@@ -150,7 +150,7 @@ def test_get_coils():
 
 def test_get_registers():
     coils = []
-    holding_registers = [HoldingRegister("test", "AB", "STR", 1.0, [0])]
+    holding_registers = [HoldingRegister("test", "AB", "INT16", 1.0, [0])]
     mqtt_settings = MqttSettings("test", 100, "test")
     modbus_settings = ModbusSettings("localhost", 10)
     site_settings = SiteSettings("testsite", "testdevice")
@@ -217,6 +217,14 @@ def test_validate_config_data():
         c = deepcopy(config)
         del c["modbus_mapping"][datatype]
         _validate_config(c)
+
+    inverting_unsigned_int = deepcopy(config)
+    reg = inverting_unsigned_int["modbus_mapping"]["holding_registers"][0]
+    reg["invert"] = True
+    reg["data_type"] = "UINT16"
+    with pytest.raises(ConfigurationFileInvalidError) as ex:
+        _validate_config(inverting_unsigned_int)
+    assert "cannot set invert=True" in str(ex.value)
 
 
 def test_key_error_in_config_parsing(monkeypatch):

@@ -210,6 +210,40 @@ def test_scale_floats(
 
 
 @pytest.mark.end_to_end
+def test_invert(
+    mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient, config: Configuration
+):
+    reg_name = "testInvert"
+    supplied = 897
+    expected = -897
+    publish_message(mqtt_client, reg_name, supplied)
+
+    register = config.get_holding_register(reg_name)
+    value = modbus_client.read_holding_registers(
+        register.address[0], len(register.address), 1
+    )
+    decoder = BinaryPayloadDecoder.fromRegisters(
+        value.registers, Endian.Big, wordorder=Endian.Big
+    )
+    assert decoder.decode_16bit_int() == expected
+
+    reg_name = "testScaleAndInvert"
+    supplied = 7368
+    expected = -736.8
+    publish_message(mqtt_client, reg_name, supplied)
+
+    register = config.get_holding_register(reg_name)
+    value = modbus_client.read_holding_registers(
+        register.address[0], len(register.address), 1
+    )
+    decoder = BinaryPayloadDecoder.fromRegisters(
+        value.registers, Endian.Big, wordorder=Endian.Big
+    )
+
+    assert decoder.decode_32bit_float() == approx(expected, rel=1e-6)
+
+
+@pytest.mark.end_to_end
 def test_read_error_messages(mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient):
     # Subscribe to the error topic and write messages to file
     msg_log = "/tmp/message_log"

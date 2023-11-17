@@ -279,5 +279,9 @@ def _validate_config(config: dict):
                 assert (
                     key in ref
                 ), f"Holding register reference #{index} has no config setting for {key!r}"
+            if ref.get("invert"):
+                assert not ref["data_type"].startswith(
+                    "UINT"
+                ), f"Holding register #{index} cannot set invert=True on an unsigned integer"
     except (AssertionError, TypeError, ValueError) as ex:
         raise ConfigurationFileInvalidError(ex)
