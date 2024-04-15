@@ -3,7 +3,7 @@ version: '3'
 services:
   mosquitto:
     container_name: mosquitto
-    image: eclipse-mosquitto:2.0.14
+    image: eclipse-mosquitto:2.0.18
     volumes: [./tests/mosquitto/mosquitto.conf:/mqtt/config/mosquitto.conf]
     ports: [1883:1883, 9001:9001]
     command: [mosquitto, -c, /mqtt/config/mosquitto.conf]
@@ -13,7 +13,7 @@ services:
         max-size: 10m
   pymodbus:
     container_name: pymodbus
-    image: ghcr.io/pymodbus-dev/pymodbus:v3.1.0
+    image: ghcr.io/pymodbus-dev/pymodbus:v3.6.8
     command:
       - pymodbus.server
       - --host
