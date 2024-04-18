@@ -39,7 +39,7 @@ from app.remote_command_handler import RemoteCommandHandler
 
 
 def setup_error_handler(configuration: Configuration) -> ErrorHandler:
-    return ErrorHandler(configuration, mqtt.Client())
+    return ErrorHandler(configuration, mqtt.Client(mqtt.CallbackAPIVersion.VERSION2))
 
 
 def setup_modbus_client(
@@ -60,7 +60,7 @@ def setup_mqtt_client(
 ) -> MqttReader:
     return MqttReader(
         configuration,
-        mqtt.Client(),
+        mqtt.Client(mqtt.CallbackAPIVersion.VERSION2),
         error_handler,
     )
 

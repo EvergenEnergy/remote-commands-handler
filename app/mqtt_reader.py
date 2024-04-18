@@ -98,20 +98,20 @@ class MqttReader:
         return inner
 
     def _on_connect(self):
-        def inner(client, _userdata, _flags, rc):
-            if rc == 0:
+        def inner(client, _userdata, _flags, reason_code, _properties):
+            if reason_code == 0:
                 logging.info("Connected to MQTT broker")
                 for topic in self._topics:
                     logging.info("Subscribing to topic: %s", topic)
                     client.subscribe(topic)
             else:
-                logging.error(f"Problem connecting to MQTT broker: {rc}")
+                logging.error(f"Problem connecting to MQTT broker: {reason_code}")
 
         return inner
 
     def _on_disconnect(self):
-        def inner(client, _userdata, rc):
-            if rc > 0:
-                logging.error(f"MQTT client has disconnected: {rc}")
+        def inner(client, _userdata, reason_code, _properties):
+            if reason_code > 0:
+                logging.error(f"MQTT client has disconnected: {reason_code}")
 
         return inner

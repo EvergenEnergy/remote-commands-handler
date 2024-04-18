@@ -12,8 +12,8 @@ def test_get_AB_order():
 
     byte_order, word_order = order.order()
 
-    assert word_order == Endian.Big
-    assert byte_order == Endian.Big
+    assert word_order == Endian.BIG
+    assert byte_order == Endian.BIG
 
 
 def test_get_BA_order():
@@ -21,8 +21,8 @@ def test_get_BA_order():
 
     byte_order, word_order = order.order()
 
-    assert word_order == Endian.Little
-    assert byte_order == Endian.Little
+    assert word_order == Endian.LITTLE
+    assert byte_order == Endian.LITTLE
 
 
 def test_get_ABCD_order():
@@ -30,8 +30,8 @@ def test_get_ABCD_order():
 
     byte_order, word_order = order.order()
 
-    assert word_order == Endian.Big
-    assert byte_order == Endian.Big
+    assert word_order == Endian.BIG
+    assert byte_order == Endian.BIG
 
 
 def test_get_CDAB_order():
@@ -39,8 +39,8 @@ def test_get_CDAB_order():
 
     byte_order, word_order = order.order()
 
-    assert word_order == Endian.Little
-    assert byte_order == Endian.Big
+    assert word_order == Endian.LITTLE
+    assert byte_order == Endian.BIG
 
 
 def test_get_BADC():
@@ -48,8 +48,8 @@ def test_get_BADC():
 
     byte_order, word_order = order.order()
 
-    assert word_order == Endian.Big
-    assert byte_order == Endian.Little
+    assert word_order == Endian.BIG
+    assert byte_order == Endian.LITTLE
 
 
 def test_get_unknown_order():
