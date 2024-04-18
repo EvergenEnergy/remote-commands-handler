@@ -16,20 +16,20 @@ class MemoryOrder:
     def _str_to_endian(self, order_string: str):
         match order_string:  # noqa
             case "AB":
-                word_order = Endian.Big
-                byte_order = Endian.Big
+                word_order = Endian.BIG
+                byte_order = Endian.BIG
             case "ABCD":
-                word_order = Endian.Big
-                byte_order = Endian.Big
+                word_order = Endian.BIG
+                byte_order = Endian.BIG
             case "BA":
-                word_order = Endian.Little
-                byte_order = Endian.Little
+                word_order = Endian.LITTLE
+                byte_order = Endian.LITTLE
             case "CDAB":
-                word_order = Endian.Little
-                byte_order = Endian.Big
+                word_order = Endian.LITTLE
+                byte_order = Endian.BIG
             case "BADC":
-                word_order = Endian.Big
-                byte_order = Endian.Little
+                word_order = Endian.BIG
+                byte_order = Endian.LITTLE
             case _:
                 raise InvalidArgumentError(
                     "Invalid memory order. Valid orders are 'AB', 'BA', 'ABCD', 'CDAB' and 'BADC'."

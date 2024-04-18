@@ -91,7 +91,7 @@ def test_able_to_send_float32(
     )
 
     decoder = BinaryPayloadDecoder.fromRegisters(
-        value.registers, Endian.Big, wordorder=Endian.Big
+        value.registers, Endian.BIG, wordorder=Endian.BIG
     )
 
     assert decoder.decode_32bit_float() == approx(random_value, rel=1e-6)
@@ -111,7 +111,7 @@ def test_able_to_send_command_with_float64(
     )
 
     decoder = BinaryPayloadDecoder.fromRegisters(
-        value.registers, Endian.Big, wordorder=Endian.Big
+        value.registers, Endian.BIG, wordorder=Endian.BIG
     )
     assert decoder.decode_64bit_float() == random_value
 
@@ -130,7 +130,7 @@ def test_able_to_send_integer64(
     )
 
     decoder = BinaryPayloadDecoder.fromRegisters(
-        value.registers, Endian.Big, wordorder=Endian.Big
+        value.registers, Endian.BIG, wordorder=Endian.BIG
     )
 
     assert decoder.decode_64bit_int() == random_value
@@ -150,7 +150,7 @@ def test_able_to_send_uint64(
     )
 
     decoder = BinaryPayloadDecoder.fromRegisters(
-        value.registers, Endian.Big, wordorder=Endian.Big
+        value.registers, Endian.BIG, wordorder=Endian.BIG
     )
 
     assert decoder.decode_64bit_uint() == random_value
@@ -203,7 +203,7 @@ def test_scale_floats(
         )
 
         decoder = BinaryPayloadDecoder.fromRegisters(
-            value.registers, Endian.Big, wordorder=Endian.Big
+            value.registers, Endian.BIG, wordorder=Endian.BIG
         )
 
         assert decoder.decode_32bit_float() == approx(expected, rel=1e-6)
@@ -223,7 +223,7 @@ def test_invert(
         register.address[0], len(register.address), 1
     )
     decoder = BinaryPayloadDecoder.fromRegisters(
-        value.registers, Endian.Big, wordorder=Endian.Big
+        value.registers, Endian.BIG, wordorder=Endian.BIG
     )
     assert decoder.decode_16bit_int() == expected
 
@@ -237,7 +237,7 @@ def test_invert(
         register.address[0], len(register.address), 1
     )
     decoder = BinaryPayloadDecoder.fromRegisters(
-        value.registers, Endian.Big, wordorder=Endian.Big
+        value.registers, Endian.BIG, wordorder=Endian.BIG
     )
 
     assert decoder.decode_32bit_float() == approx(expected, rel=1e-6)
