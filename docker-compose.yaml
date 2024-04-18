@@ -13,7 +13,7 @@ services:
         max-size: 10m
   pymodbus:
     container_name: pymodbus
-    image: ghcr.io/pymodbus-dev/pymodbus:v3.1.0
+    image: ghcr.io/evergenenergy/pymodbus-image:main
     command:
       - pymodbus.server
       - --host
