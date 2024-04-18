@@ -16,7 +16,7 @@ from app.configuration import Configuration
 
 @pytest.fixture(scope="module")
 def mqtt_client():
-    client = mqtt.Client()
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     client.connect("localhost", 1883, 60)
     yield client  # provide the client for tests
     client.disconnect()  # disconnect after tests
