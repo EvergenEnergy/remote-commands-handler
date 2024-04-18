@@ -30,7 +30,7 @@ class TestMqttReader:
 
         def call_on_connect(*args):
             callback = self.mqtt_reader._on_connect()
-            callback(self.mock_mqtt_client, None, None, 0)
+            callback(self.mock_mqtt_client, None, None, 0, None)
 
         # Assume connect method always successful
         self.mock_mqtt_client.connect.return_value = 0
@@ -100,13 +100,13 @@ class TestMqttReader:
         self.mock_mqtt_client.connect.return_value = 0
         self.mqtt_reader.run()
         callback = self.mock_mqtt_client.on_disconnect
-        callback(self.mock_mqtt_client, None, 1)
+        callback(self.mock_mqtt_client, None, 1, None)
         assert "MQTT client has disconnected: 1" == str(caplog.records[0].message)
 
     def test_fail_connect_rc(self, caplog):
         def call_on_connect(*args):
             callback = self.mqtt_reader._on_connect()
-            callback(self.mock_mqtt_client, None, None, 1)
+            callback(self.mock_mqtt_client, None, None, 1, None)
 
         self.mock_mqtt_client.connect.side_effect = call_on_connect
         self.mqtt_reader.run()
