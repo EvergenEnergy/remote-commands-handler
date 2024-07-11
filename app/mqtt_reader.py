@@ -9,7 +9,7 @@ from typing import Callable
 
 import paho.mqtt.client as mqtt
 
-from app.message import CommandMessage
+from app.message import CommandMessage, CommandMessageList
 from app.configuration import Configuration
 from app.exceptions import InvalidMessageError, UnknownCommandError
 from app.error_handler import ErrorHandler
@@ -65,15 +65,20 @@ class MqttReader:
 
     def _on_message(self):
         def inner(_client, _userdata, message):
+            msg_topic = message.topic
+            msg_str = ""
+            msg_obj_list = []
             try:
                 try:
                     msg_str = _decode_message(message)
-                    msg_dict = CommandMessage.read(msg_str)
-                    msg_obj = CommandMessage(
-                        msg_dict["action"], msg_dict["value"], self.configuration
-                    )
-                    msg_obj.validate()
-                    msg_obj.transform()
+                    msg_list = CommandMessageList.read(msg_str)
+                    for msg_dict in msg_list:
+                        msg_obj = CommandMessage(
+                            msg_dict["action"], msg_dict["value"], self.configuration
+                        )
+                        msg_obj.validate()
+                        msg_obj.transform()
+                        msg_obj_list.append(msg_obj)
                 except InvalidMessageError as ex:
                     self.error_handler.publish(
                         self.error_handler.Category.INVALID_MESSAGE, str(ex)
@@ -84,13 +89,16 @@ class MqttReader:
                         self.error_handler.Category.UNKNOWN_COMMAND, str(ex)
                     )
                     return
-                for callback in self._on_message_callbacks:
-                    callback(msg_obj)
+                for msg_obj in msg_obj_list:
+                    for callback in self._on_message_callbacks:
+                        callback(msg_obj)
             # In general it's not good practice to catch Exception, but we're doing so here
             # in order to trap unhandled exceptions occurring within message processing,
             # and prevent them rising up to the main loop.
             # If these occur, the cause should be identified and code changed to catch them.
             except Exception as ex:
+                logging.error(f"Encountered error {ex} on topic {msg_topic}")
+                logging.info(msg_str)
                 self.error_handler.publish(
                     self.error_handler.Category.UNHANDLED, str(ex)
                 )

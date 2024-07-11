@@ -45,10 +45,10 @@ class TestMqttReader:
         self.mock_mqtt_client.subscribe.call_count == 1
 
         # Pretend that the MQTT broker received a message and our callback is called
-        json_obj = {"action": "evgBatteryModeCoil", "value": True}
+        json_obj = [{"action": "evgBatteryModeCoil", "value": True}]
         json_str = json.dumps(json_obj)
         msg_obj = CommandMessage(
-            json_obj["action"], json_obj["value"], self.configuration
+            json_obj[0]["action"], json_obj[0]["value"], self.configuration
         )
         paho_msg = MQTTMessage()
         paho_msg.payload = json_str.encode()
@@ -74,12 +74,30 @@ class TestMqttReader:
             "Message is invalid JSON syntax: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)",  # noqa
         )
 
+        bad_json_str = '["list","without","dict"]'
+        paho_msg = MQTTMessage()
+        paho_msg.payload = bad_json_str.encode()
+        self.mock_mqtt_client.on_message(self.mock_mqtt_client, None, paho_msg)
+        self.mock_error_handler.publish.assert_called_with(
+            self.mock_error_handler.Category.INVALID_MESSAGE,
+            "Message object must be a dict",
+        )
+
+        bad_json_str = '[{"action":"but no value"}]'
+        paho_msg = MQTTMessage()
+        paho_msg.payload = bad_json_str.encode()
+        self.mock_mqtt_client.on_message(self.mock_mqtt_client, None, paho_msg)
+        self.mock_error_handler.publish.assert_called_with(
+            self.mock_error_handler.Category.INVALID_MESSAGE,
+            "Message is missing required components 'action' and/or 'value'",
+        )
+
         self.mqtt_reader.stop()
 
     def test_unknown_message(self):
         self.mqtt_reader.run()
 
-        unknown_msg = json.dumps({"action": "noSuchCoil", "value": False})
+        unknown_msg = json.dumps([{"action": "noSuchCoil", "value": False}])
         paho_msg = MQTTMessage()
         paho_msg.payload = unknown_msg.encode()
         self.mock_mqtt_client.on_message(self.mock_mqtt_client, None, paho_msg)
@@ -121,7 +139,7 @@ class TestMqttReader:
         self.mqtt_reader.run()
 
         paho_msg = MQTTMessage()
-        json_str = json.dumps({"action": "evgBatteryModeCoil", "value": True})
+        json_str = json.dumps([{"action": "evgBatteryModeCoil", "value": True}])
         paho_msg.payload = json_str.encode()
         self.mock_mqtt_client.on_message(self.mock_mqtt_client, None, paho_msg)
         self.mock_error_handler.publish.assert_called_with(
