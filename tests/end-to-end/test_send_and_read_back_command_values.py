@@ -35,9 +35,13 @@ def config():
     yield Configuration.from_file("tests/end-to-end/configuration.yaml")
 
 
-def publish_message(mqtt_client: mqtt.Client, name: str, value: str):
-    message_dictionary = [{"action": name, "value": value}]
-    message = json.dumps(message_dictionary)
+def publish_message(mqtt_client: mqtt.Client, *args: str):
+    print(args)
+    message_list = []
+    for msg_pair in args:
+        message_list.append({"action": msg_pair[0], "value": msg_pair[1]})
+    message = json.dumps(message_list)
+    print(message)
 
     mqtt_client.publish("commands/test", message)
 
@@ -53,7 +57,7 @@ def test_able_to_update_coil(
     coil_value: bool,
 ):
     coil_name = "testCoil"
-    publish_message(mqtt_client, coil_name, coil_value)
+    publish_message(mqtt_client, (coil_name, coil_value))
 
     coil = config.get_coil(coil_name)
     value = modbus_client.read_coils(coil.address[0], len(coil.address), 1)
@@ -67,7 +71,7 @@ def test_able_to_send_integer16(
 ):
     reg_name = "testInt16Register"
     random_value = random.randint(20000, 30000)
-    publish_message(mqtt_client, reg_name, random_value)
+    publish_message(mqtt_client, (reg_name, random_value))
 
     register = config.get_holding_register(reg_name)
     value = modbus_client.read_holding_registers(
@@ -83,7 +87,7 @@ def test_able_to_send_float32(
 ):
     reg_name = "testFloatRegister"
     random_value = random.uniform(20000, 30000)
-    publish_message(mqtt_client, reg_name, random_value)
+    publish_message(mqtt_client, (reg_name, random_value))
 
     register = config.get_holding_register(reg_name)
     value = modbus_client.read_holding_registers(
@@ -103,7 +107,7 @@ def test_able_to_send_command_with_float64(
 ):
     reg_name = "testFloat64Register"
     random_value = random.uniform(200000, 300000)
-    publish_message(mqtt_client, reg_name, random_value)
+    publish_message(mqtt_client, (reg_name, random_value))
 
     register = config.get_holding_register(reg_name)
     value = modbus_client.read_holding_registers(
@@ -122,7 +126,7 @@ def test_able_to_send_integer64(
 ):
     reg_name = "testInt64Register"
     random_value = random.randint(40000, 50000)
-    publish_message(mqtt_client, reg_name, random_value)
+    publish_message(mqtt_client, (reg_name, random_value))
 
     register = config.get_holding_register(reg_name)
     value = modbus_client.read_holding_registers(
@@ -142,7 +146,7 @@ def test_able_to_send_uint64(
 ):
     reg_name = "testUInt64Register"
     random_value = random.randint(400000, 500000)
-    publish_message(mqtt_client, reg_name, random_value)
+    publish_message(mqtt_client, (reg_name, random_value))
 
     register = config.get_holding_register(reg_name)
     value = modbus_client.read_holding_registers(
@@ -172,13 +176,42 @@ def test_scale_ints(
         "down": [(2560, 2), (256, 0)],
     }
     for supplied, expected in test_values[scale_direction]:
-        publish_message(mqtt_client, reg_name, supplied)
+        publish_message(mqtt_client, (reg_name, supplied))
 
         value = modbus_client.read_holding_registers(
             register.address[0], len(register.address), 1
         )
 
         assert value.registers[0] == expected
+
+
+@pytest.mark.end_to_end
+def test_scale_multiple_ints(
+    mqtt_client: mqtt.Client,
+    modbus_client: ModbusTcpClient,
+    config: Configuration,
+):
+    reg_name_up = "testScaledUpInt"
+    register_up = config.get_holding_register(reg_name_up)
+    send_up = 432
+    expect_up = 4320
+
+    reg_name_down = "testScaledDownInt"
+    register_down = config.get_holding_register(reg_name_down)
+    send_down = 4320
+    expect_down = 4
+
+    publish_message(mqtt_client, (reg_name_up, send_up), (reg_name_down, send_down))
+
+    up_value = modbus_client.read_holding_registers(
+        register_up.address[0], len(register_up.address), 1
+    )
+    assert up_value.registers[0] == expect_up
+
+    down_value = modbus_client.read_holding_registers(
+        register_down.address[0], len(register_down.address), 1
+    )
+    assert down_value.registers[0] == expect_down
 
 
 @pytest.mark.end_to_end
@@ -195,7 +228,7 @@ def test_scale_floats(
         "down": [(2560, 25.6), (2.56, 0.0256)],
     }
     for supplied, expected in test_values[scale_direction]:
-        publish_message(mqtt_client, reg_name, supplied)
+        publish_message(mqtt_client, (reg_name, supplied))
 
         register = config.get_holding_register(reg_name)
         value = modbus_client.read_holding_registers(
@@ -216,7 +249,7 @@ def test_invert(
     reg_name = "testInvert"
     supplied = 897
     expected = -897
-    publish_message(mqtt_client, reg_name, supplied)
+    publish_message(mqtt_client, (reg_name, supplied))
 
     register = config.get_holding_register(reg_name)
     value = modbus_client.read_holding_registers(
@@ -230,7 +263,7 @@ def test_invert(
     reg_name = "testScaleAndInvert"
     supplied = 7368
     expected = -736.8
-    publish_message(mqtt_client, reg_name, supplied)
+    publish_message(mqtt_client, (reg_name, supplied))
 
     register = config.get_holding_register(reg_name)
     value = modbus_client.read_holding_registers(
@@ -244,7 +277,9 @@ def test_invert(
 
 
 @pytest.mark.end_to_end
-def test_read_error_messages(mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient):
+def test_read_error_messages(
+    mqtt_client: mqtt.Client, modbus_client: ModbusTcpClient, config: Configuration
+):
     # Subscribe to the error topic and write messages to file
     msg_log = "/tmp/message_log"
     if os.path.exists(msg_log):
@@ -291,9 +326,15 @@ def test_read_error_messages(mqtt_client: mqtt.Client, modbus_client: ModbusTcpC
     os.remove(msg_log)
 
     # Confirm that command subscription is still OK
-    message_dictionary = {"action": "testCoil", "value": True}
-    message = json.dumps(message_dictionary)
+    random_value = random.randint(10000, 15000)
+    message_dict = {"action": "testInt16Register", "value": random_value}
+    message = json.dumps([message_dict])
     mqtt_client.publish("commands/test", message)
     time.sleep(1)
-    value = modbus_client.read_coils(504, 1, 1)
-    assert value.bits[0] is True
+
+    register = config.get_holding_register("testInt16Register")
+    value = modbus_client.read_holding_registers(
+        register.address[0], len(register.address), 1
+    )
+
+    assert value.registers[0] == random_value

@@ -22,6 +22,19 @@ class TestCommandMessage:
         assert "action" in read_msg[0]
         assert "value" in read_msg[0]
 
+    def test_multiple_cmd_messages(self):
+        json_obj = [
+            {"action": "somecoil", "value": True},
+            {"action": "someregister", "value": 42.3},
+        ]
+        json_str = json.dumps(json_obj)
+        read_msgs = CommandMessageList.read(json_str)
+        assert len(read_msgs) == 2
+        assert read_msgs[0].get("action") == "somecoil"
+        assert read_msgs[0].get("value") is True
+        assert read_msgs[1].get("action") == "someregister"
+        assert read_msgs[1].get("value") == 42.3
+
     def test_unknown_command(self):
         with pytest.raises(UnknownCommandError) as ex:
             CommandMessage("bad_register", 54, self.configuration)
