@@ -35,13 +35,11 @@ def config():
     yield Configuration.from_file("tests/end-to-end/configuration.yaml")
 
 
-def publish_message(mqtt_client: mqtt.Client, *args: str):
-    print(args)
-    message_list = []
-    for msg_pair in args:
-        message_list.append({"action": msg_pair[0], "value": msg_pair[1]})
-    message = json.dumps(message_list)
-    print(message)
+def publish_message(mqtt_client: mqtt.Client, *cmd_pairs: str):
+    cmd_list = []
+    for cmd in cmd_pairs:
+        cmd_list.append({"action": cmd[0], "value": cmd[1]})
+    message = json.dumps(cmd_list)
 
     mqtt_client.publish("commands/test", message)
 
