@@ -1,7 +1,4 @@
-"""Error handler module.
-
-
-"""
+"""Error handler module."""
 
 import time
 import logging
